@@ -1,0 +1,20 @@
+---
+title: "Introducing the 'biglda'-package"
+author: "Andreas Blätte (andreas.blaette@uni-due.de)"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: topicmodelling.bibtex
+vignette: >
+  %\VignetteIndexEntry{Introducing biglda}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+## Purpose
+
+
+
+## References 
+

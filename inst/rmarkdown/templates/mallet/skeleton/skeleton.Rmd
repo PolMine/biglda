@@ -1,0 +1,93 @@
+---
+title: "Compute mallet topic model"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Compute mallet topic model}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+## Initialization
+
+### Settings
+
+```{r filenames}
+instancefile <- tempfile() # Use findable path
+modelfile <- tempfile() # Use findable path
+```
+
+The memory available for the Java Virtual Machine (JVM) to be used needs to be defined before creating the JVM
+
+```{r java_settings}
+options(java.parameters = "-Xmx4g") # Sufficient for larger data
+```
+
+
+### Load libraries
+
+```{r load_libraries, message = FALSE}
+library("polmineR")
+library(topicanalysis)
+library(mallet) # Includes mallet jars
+library(rJava)
+library(data.table)
+```
+
+
+## Corpus data
+
+### Create document-level data
+
+```{r corpus_data, message = FALSE}
+use("polmineR")
+coi <- "GERMAPARLMINI"
+speeches <- as.speeches(coi, s_attribute_name = "speaker")
+```
+
+
+### R-side preprocessing
+
+Keep only documents with a minimum length.
+
+```{r min_length, message = FALSE}
+doc_min_length <- 100L
+dt <- as.data.table(summary(speeches))
+speeches <- speeches[[ dt[size >= doc_min_length][["name"]] ]]
+```
+
+
+### Create instance list
+
+```{r instance_list}
+instance_list <- mallet_make_instance_list(speeches)
+```
+
+Implicitly, the `mallet_make_instance_list` uses stopwords of the `tm` package.
+
+
+## Estimate topic model
+
+Starting to estimate the topic model at: `r (format(started <- Sys.time(), format = "%T"))`
+
+```{r estimate_topic_model}
+lda <- .jnew("cc/mallet/topics/ParallelTopicModel", 25L, 5.1, 0.1)
+lda$addInstances(instance_list)
+lda$setNumThreads(1L)
+lda$setTopicDisplay(50L, 10L)
+lda$setNumIterations(2000L)
+lda$estimate()
+```
+
+Finished computation at `r (format(finished <- Sys.time(), "%T"))` (total time: `r format(Sys.time() - started, format = "%T")`).
+
+
+## Save topic model
+
+```{r save_topic_model}
+lda$write(rJava::.jnew("java/io/File", modelfile))
+```
+
+

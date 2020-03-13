@@ -1,0 +1,159 @@
+---
+title: "Compute gensim topic model"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Compute gensim topic model}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+params:
+  package: "polmineR"
+  corpus: "GERMAPARLMINI"
+editor_options: 
+  chunk_output_type: console
+---
+
+## Background
+
+I used [this](https://www.machinelearningplus.com/nlp/topic-modeling-gensim-python/) website as an introduction to gensim and to understand the data structure.
+
+
+```{r}
+outdir <- tempdir()
+modelname <- "germaparlmini"
+```
+
+## Preparing Python
+
+```{r import_gensim, message = FALSE}
+library(reticulate)
+gensim <- import("gensim")
+threads <- parallel::detectCores() - 1L
+```
+
+
+## Preparing R
+
+```{r data, message = FALSE}
+library(polmineR)
+use("GermaParl")
+coi <- "GERMAPARLMINI" # corpus of interest
+language <- "german"
+```
+
+
+```{r, message = TRUE}
+library(slam)
+```
+
+## Data preparation and preprocessing with R
+
+```{r create_matrix, message = FALSE}
+dtm <- corpus(coi) %>%
+  as.speeches(s_attribute_name = "speaker") %>%
+  as.DocumentTermMatrix(p_attribute = "word")
+```
+
+```{r}
+dim(dtm)
+```
+
+Computing the topic models will be much faster if we remove common and noisy words. The following code block is taken from the template for LDA topic models using the R topicmodels package.
+
+```{r reduce_dtm, message = FALSE}
+# minimum document length 100 words
+docs_to_drop_length <- which(slam::row_sums(dtm) < 100L) # less than 100
+if (length(docs_to_drop_length) > 0L) dtm <- dtm[-docs_to_drop_length,]
+
+# remove noisy words
+noise_to_drop <- noise(colnames(dtm), specialChars = NULL, stopwordsLanguage = language)
+noise_to_drop[["stopwords"]] <- c(
+  noise_to_drop[["stopwords"]],
+  paste(
+    toupper(substr(noise_to_drop[["stopwords"]], 1, 1)),
+    substr(noise_to_drop[["stopwords"]], 2, nchar(noise_to_drop[["stopwords"]])),
+    sep = ""
+  )
+)
+
+dtm <- dtm[,-which(colnames(dtm) %in% unique(unlist(noise_to_drop)))]
+
+# remove rare words
+terms_to_drop_rare <- which(slam::col_sums(dtm) <= 10L)
+if (length(terms_to_drop_rare) > 0L) dtm <- dtm[,-terms_to_drop_rare]
+
+# remove documents that are empty now
+empty_docs <- which(slam::row_sums(dtm) == 0L)
+if (length(empty_docs) > 0L) dtm <- dtm[-empty_docs,]
+dim(dtm)
+```
+
+
+## Data transition from R to Python
+
+### Prepare the 'corpus' object
+
+We need a list of list with tuples inside ... 
+
+```{r prepare_corpus, message = FALSE}
+dtm$j <- dtm$j - 1L
+py$j <- r_to_py(unname(split(x = dtm$j, f = dtm$i)), convert = TRUE)
+py$v <- r_to_py(unname(split(x = dtm$v, f = dtm$i)), convert = TRUE)
+py_run_string("corpus = [zip(j[x],v[x]) for x in range(len(j))]")
+``` 
+
+
+### Prepare the 'Dictionary' class object
+
+```{r prepare_dictionary}
+Encoding(dtm$dimnames$Terms) <- "UTF-8"
+py$terms <- dtm$dimnames$Terms
+py_run_string("token2id = dict(zip(terms, range(len(terms))))")
+py$dictionary <- gensim$corpora$dictionary$Dictionary()
+py_run_string("dictionary.__dict__['token2id'] = token2id")
+```
+
+
+## Computing the topic model
+
+And now we can run the gensim topicmodelling engine.
+
+```{r lda_single_threaded, echo = FALSE}
+started <- Sys.time()
+```
+
+
+```{r}
+if (as.integer(threads) == 1L){
+  lda_model <- gensim$models$ldamodel$LdaModel(
+    corpus = py$corpus,
+    id2word = py$dictionary,
+    num_topics = 250L, 
+    random_state = 100L,
+    update_every = 1L,
+    chunksize = 100L,
+    passes = 10L,
+    alpha = "auto",
+    per_word_topics = TRUE
+  )
+} else {
+  lda_model <- gensim$models$ldamulticore$LdaMulticore(
+    corpus = py$corpus,
+    id2word = py$dictionary,
+    num_topics = 20L,
+    random_state = 100L,
+    chunksize = 100L,
+    passes = 10L,
+    per_word_topics = TRUE,
+    workers = as.integer(threads) # required to be integer
+  )
+  
+}
+```
+
+Time passed for computing the topic model: `r Sys.time() - started`
+
+
+```{r}
+lda_model$save(file.path(outdir, modelname))
+```

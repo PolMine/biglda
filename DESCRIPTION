@@ -1,0 +1,38 @@
+Package: biglda
+Type: Package
+Title: Tools for fast LDA topic modelling for big corpora
+Version: 0.0.0.9001
+Date: 2020-03-13
+Authors@R: c(
+  person("Andreas", "Blaette", role = c("aut", "cre"), email = "andreas.blaette@uni-due.de", comment = c(ORCID = "0000-0001-8970-8010")),
+  person("Christoph", "Leonhardt", role = "ctb")
+  )
+Maintainer: Andreas Blaette <andreas.blaette@uni-due.de>
+Description: Auxiliary functions for topicmodelling.
+Encoding: UTF-8
+License: GPL-3
+Depends:
+  R (>= 3.5.0)
+Imports:
+  polmineR,
+  methods,
+  data.table,
+  topicmodels,
+  pbapply,
+  rJava,
+  mallet,
+  slam,
+  xml2
+Suggests:
+  testthat,
+  knitr,
+  rmarkdown,
+  reticulate,
+  webshot
+LazyData: false
+VignetteBuilder: knitr
+Collate:
+  'biglda.R'
+  'mallet.R'
+  'gensim.R'
+RoxygenNote: 7.0.2

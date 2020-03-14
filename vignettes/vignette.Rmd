@@ -12,7 +12,43 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Purpose
+## Why
+
+The mallet package ships jars, slightly modified, do conceal some functionality.
+
+# Preparations: Create instance list
+
+```{r}
+options(java.parameters = "-Xmx4g")
+library(polmineR)
+library(biglda)
+if (!mallet_is_installed()) mallet_install()
+polmineR::use("polmineR")
+speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+```
+
+```{r}
+instance_list <- as.instance_list(speeches)
+```
+
+
+```{r}
+lda <- rJava::.jnew("cc/mallet/topics/ParallelTopicModel", 25L, 5.1, 0.1)
+lda$addInstances(instance_list)
+lda$setNumThreads(1L)
+lda$setTopicDisplay(50L, 10L)
+lda$setNumIterations(150L)
+lda$estimate()
+# lda$write(rJava::.jnew("java/io/File", destfile))
+```
+
+# Load topicmodel and turn it into LDA_Gibbs
+
+```{r}
+# mallet_lda <- mallet_load_topicmodel(destfile)
+topicmodels_lda <- as_LDA(lda)
+```
+
 
 
 

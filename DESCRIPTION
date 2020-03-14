@@ -20,7 +20,6 @@ Imports:
   topicmodels,
   pbapply,
   rJava,
-  mallet,
   slam,
   xml2
 Suggests:
@@ -29,10 +28,12 @@ Suggests:
   rmarkdown,
   reticulate,
   webshot
+SystemRequirements: java
 LazyData: false
 VignetteBuilder: knitr
 Collate:
   'biglda.R'
   'mallet.R'
   'gensim.R'
+  'zzz.R'
 RoxygenNote: 7.0.2

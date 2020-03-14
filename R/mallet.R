@@ -1,3 +1,20 @@
+#' @importFrom rJava J
+#' @export
+rJava::J
+
+#' @importFrom rJava .jnew
+#' @export
+rJava::.jnew
+
+#' @importFrom rJava .jcast
+#' @export
+rJava::.jcast
+
+#' @importClassesFrom topicmodels TopicModel
+#' @exportClass LDA_matched
+#' @rdname mallet
+setClass("LDA_matched", contains = "TopicModel")
+
 #' Interface to mallet topicmodelling.
 #' 
 #' Functionality to support the following workflow (see examples): (a) Turn
@@ -23,58 +40,31 @@
 #' @examples  
 #' # Preparations: Create instance list
 #' 
+#' if (!mallet_is_installed()) mallet_install()
+#' 
 #' polmineR::use("polmineR")
 #' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 #' 
-#' if (requireNamespace("rJava")){
-#'   # options(java.parameters = "-Xmx4g")
-#'   library(rJava)
-#'   .jinit()
-#'   # We need to put the jars from mallet 2.0 on the classpath because
-#'   # only the newer mallet version (not the one included in mallet R package)
-#'   # has method ParallelTopicModel$getDocumentTopics() needed by as_LDA
-#'   .jaddClassPath("/opt/mallet-2.0.8/class") # after .jinit()
-#'   .jaddClassPath("/opt/mallet-2.0.8/lib/mallet-deps.jar")
-#'   instance_list <- mallet_make_instance_list(speeches)
-#'   instancefile <- mallet_instance_list_store(instance_list)
-#' }
+#'   instance_list <- as.instance_list(speeches)
 #' 
-#' # Option 1: Run mallet from R using mallet package
-#' 
-#' if (requireNamespace("mallet")){
-#'   lda <- mallet::MalletLDA(num.topics = 20)
-#'   lda$loadDocuments(instance_list)
-#'   lda$setAlphaOptimization(20, 50)
-#'   lda$train(100)
-#' }
-#' 
-#' # Option 2: Use ParallelTopicModel class - has write()-method
-#' 
-#' if (requireNamespace("mallet")){
-#'   destfile <- tempfile()
 #'   lda <- rJava::.jnew("cc/mallet/topics/ParallelTopicModel", 25L, 5.1, 0.1)
 #'   lda$addInstances(instance_list)
 #'   lda$setNumThreads(1L)
 #'   lda$setTopicDisplay(50L, 10L)
 #'   lda$setNumIterations(150L)
 #'   lda$estimate()
-#'   lda$write(rJava::.jnew("java/io/File", destfile))
-#' }
+#'   # lda$write(rJava::.jnew("java/io/File", destfile))
 #' 
 #' # Load topicmodel and turn it into LDA_Gibbs
 #' 
-#' mallet_lda <- mallet_load_topicmodel(destfile)
-#' \dontrun{
-#' topicmodels_lda <- as_LDA(mallet_lda)
-#' }
+#' # mallet_lda <- mallet_load_topicmodel(destfile)
+#' topicmodels_lda <- as_LDA(lda)
 #' 
 #' @rdname mallet
 #' @importFrom polmineR get_token_stream
 #' @export mallet_make_instance_list
+#' @importFrom rJava J
 mallet_make_instance_list <- function(x, p_attribute = "word", phrases = NULL, terms_to_drop = tm::stopwords("de"), mc = TRUE, verbose = TRUE){
-  if (!requireNamespace(package = "rJava", quietly = TRUE)) stop("rJava package not available")
-  if (!requireNamespace(package = "mallet", quietly = TRUE)) stop("mallet package not available")
-  
   token_stream_list <- get_token_stream(x, p_attribute = p_attribute, phrases = phrases, collapse = "\n")
   token_stream_vec <- unlist(token_stream_list)
   rm(token_stream_list)
@@ -84,10 +74,62 @@ mallet_make_instance_list <- function(x, p_attribute = "word", phrases = NULL, t
   cat(paste(terms_to_drop, collapse = "\n"), file = stoplist_file)
   
   if (verbose) message("... preparing mallet object")
-  mallet::mallet.import(
-    id.array = names(x), text.array = token_stream_vec,
-    stoplist.file = stoplist_file, preserve.case = TRUE
+  # mallet::mallet.import(
+  #   id.array = names(x), text.array = token_stream_vec,
+  #   stoplist.file = stoplist_file, preserve.case = TRUE
+  # )
+}
+
+
+#' @examples
+#' library(polmineR)
+#' use("polmineR")
+#' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' speeches_instance_list <- as.instance_list(speeches, p_attr = "word")
+#' @param p_attr a p-attribute
+#' @param url url of mallet
+#' @importFrom rJava .jarray
+#' @rdname mallet
+#' @export as.instance_list
+#' @importFrom polmineR get_corpus
+#' @importMethodsFrom polmineR corpus p_attributes
+as.instance_list <- function(x, p_attr = "word", verbose = TRUE){
+  
+  if (verbose) message("... create alphabet")
+  alphabet <- rJava::.jnew("cc/mallet/types/Alphabet", rJava::.jnew("java/lang/String")$getClass())
+  corpus_obj <- corpus(get_corpus(x))
+  vocabulary <- p_attributes(corpus_obj, p_attribute = "word")
+  dummy <- alphabet$lookupIndices(.jarray(vocabulary), TRUE)
+  
+  if (verbose) message("... instantiate pipe")
+  pipe <- .jnew("cc/mallet/pipe/TokenSequence2FeatureSequence", alphabet)
+  pipe$setTargetAlphabet(alphabet)
+  
+  if (verbose) message("... decode token stream")
+  token_stream_list <- get_token_stream(x, p_attribute = p_attr)
+  
+  if (verbose) message("... created instances")
+  instance <- .jnew(
+    "cc.mallet.types.Instance",
+    .jnew("java.lang.Object"),
+    .jnew("java.lang.Object"),
+    .jnew("java.lang.Object"),
+    .jnew("java.lang.Object")
   )
+  instances <- pblapply(
+    token_stream_list,
+    function(token_stream){
+      token_sequence <- .jnew("cc/mallet/types/TokenSequence")
+      token_sequence$addAll(.jarray(token_stream))
+      instance$setData(token_sequence)
+      pipe$instanceFrom(instance)
+    }
+  )
+  
+  # Add instances to InstanceList
+  instance_list <- rJava::.jnew("cc/mallet/types/InstanceList")
+  dummy <- pblapply(instances, function(i) instance_list$add(instance))
+  instance_list
 }
 
 
@@ -103,7 +145,7 @@ mallet_make_instance_list <- function(x, p_attribute = "word", phrases = NULL, t
 #' @export as_LDA
 #' @importFrom pbapply pblapply
 #' @rdname mallet
-#' @importClassesFrom topicmodels LDA
+#' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
 as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
 
   if (!grepl("ParallelTopicModel", x$getClass()$toString()))
@@ -133,14 +175,15 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   }
 
   new(
-    "LDA",
+    "LDA_matched",
     Dim = dimensions,
     k = x$getNumTopics(),
     terms = alphabet,
     documents = docs, # Vector containing the document names
     beta = beta, # A matrix; logarithmized parameters of the word distribution for each topic
     gamma = gamma, # matrix, parameters of the posterior topic distribution for each document
-    iter = x$numIterations
+    iter = x$numIterations,
+    control = new("LDA_Gibbscontrol")
   )
 }
 
@@ -163,8 +206,9 @@ mallet_instance_list_store <- function(x, filename = tempfile()){
 #'   \code{load.mallet.instances} from the R package \code{mallet}.
 #' @rdname mallet
 #' @export mallet_instance_list_load
+#' @importFrom rJava J
 mallet_instance_list_load <- function(filename){
-  rJava::J("cc.mallet.types.InstanceList")$load(rJava::.jnew("java/io/File", filename))
+  J("cc.mallet.types.InstanceList")$load(rJava::.jnew("java/io/File", filename))
 }
 
 #' @details The function \code{mallet_load_topicmodel} will load a topic model
@@ -371,3 +415,64 @@ mallet_get_sparse_word_weights_matrix <- function(x, n_topics = 50L, destfile = 
   )
 }
 
+
+#' @details The \code{mallet_is_installed} utility will return a logical value
+#'   whether mallet is installed or not.
+#' @export mallet_is_installed
+#' @rdname mallet
+mallet_is_installed <- function(){
+  mallet_dir <- system.file(package = "biglda", "java")
+  j_dirs <- list.dirs(system.file(package = "biglda", "java"), recursive = FALSE)
+  if (length(j_dirs) == 0L) return(FALSE)
+  grepl("mallet-\\d+\\.\\d+\\.\\d+", j_dirs)
+}
+
+
+#' @importFrom rJava .jaddClassPath
+mallet_set_classpath <- function(){
+  if (isFALSE(mallet_is_installed())){
+    warning("mallet is not available, call mallet_install()")
+    return(NULL)
+  }
+  mallet_dir <- system.file(package = "biglda", "java", sprintf("mallet-%s", as.character(mallet_get_version())))
+  mallet_jar_file <- file.path(mallet_dir, "lib", "mallet-deps.jar")
+  mallet_class_dir <- file.path(mallet_dir, "class")
+  .jaddClassPath(mallet_jar_file)
+  .jaddClassPath(mallet_class_dir)
+}
+
+#' @export mallet_get_version
+#' @rdname mallet
+mallet_get_version <- function(){
+  if (isFALSE(mallet_is_installed())) return(NULL)
+  java_dir <- system.file(package = "biglda", "java")
+  mallet_install_dir <- grep(
+    "mallet-\\d+\\.\\d+\\.\\d+",
+    list.dirs(java_dir, recursive = FALSE, full.names = FALSE)[1],
+    value = TRUE
+  )
+  version_vec <- list(c(
+    gsub("mallet-(\\d+)\\.\\d+\\.\\d+", "\\1", mallet_install_dir),
+    gsub("mallet-\\d+\\.(\\d+)\\.\\d+", "\\1", mallet_install_dir),
+    gsub("mallet-\\d+\\.\\d+\\.(\\d+)", "\\1", mallet_install_dir)
+  ))
+  class(version_vec) <- "numeric_version"
+  version_vec
+}
+
+#' @export mallet_install
+#' @rdname mallet
+#' @importFrom rJava .jinit
+#' @importFrom utils download.file untar
+mallet_install <- function(url = "http://mallet.cs.umass.edu/dist/mallet-2.0.8.tar.gz"){
+  message("... downloading mallet")
+  mallet_dir <- system.file(package = "biglda", "java")
+  mallet_tarball <- file.path(mallet_dir, basename(url))
+  download.file(url = url, destfile = mallet_tarball)
+  untar(tarfile = mallet_tarball, verbose = FALSE, exdir = mallet_dir)
+  unlink(x = mallet_tarball)
+  message("... initializing JVM")
+  .jinit()
+  message("... adding to classpath")
+  mallet_set_classpath()
+}

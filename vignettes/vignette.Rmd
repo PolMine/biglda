@@ -14,41 +14,91 @@ editor_options:
 
 ## Why
 
-The mallet package ships jars, slightly modified, do conceal some functionality.
+The purpose of the biglda package is to expose the fast parallelized topic model computation of the mallet package to handle big corpora efficiently. At this stage, this vignette includes only a minimal example to convey the fundamental workflow.
 
-# Preparations: Create instance list
+
+## Installation 
+
+The *biglda* package is a GitHub only package at this stage. You can install is from the GitHub site of the PolMine Project
+
+```{r, eval = FALSE}
+devtools::install_github("PolMine/biglda")
+```
+
+
+## Getting started
+
+Computing a topic model may require a lot of memory. It is necessary to define the memory available for the Java Virtual Machine (JVM) that will be used to interface to Java *before* the JVM is started. As the *biglda* package will initialize a JVM upon being loaded, the respective parameter needs to be set before we load *biglda*.
 
 ```{r}
 options(java.parameters = "-Xmx4g")
-library(polmineR)
 library(biglda)
+```
+
+The mallet Java package is not shipped with the R package biglda, to keep size of the R package minimal, and to avoid a complicated situation of licenses. Load the mallet Java package if it is not yet installed.
+
+```{r}
 if (!mallet_is_installed()) mallet_install()
-polmineR::use("polmineR")
+```
+
+To check the installation, get the version of mallet.
+
+```{r}
+mallet_get_version()
+```
+
+
+## Sample Workflow
+
+The biglda package works seamlessly with the polmineR package. In our example, we compute a topic model for the speeches in the GERMAPARLMINI sample corpus which is included in the polmineR package.
+
+```{r}
+library(polmineR)
 speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 ```
+
+Before training the topic model, mallet requires that the input data are converted into the mallet input format, an InstanceList.
 
 ```{r}
 instance_list <- as.instance_list(speeches)
 ```
 
+We now instantiate the ParallelTopicModel class.
 
 ```{r}
-lda <- rJava::.jnew("cc/mallet/topics/ParallelTopicModel", 25L, 5.1, 0.1)
+lda <- ParallelTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
+```
+
+The methods for this class are not defined by the biglda package and are not documented therein, but on the documentation of the mallet api.
+
+The first next step is to feed the data to be modelled, i.e. the instance_list into the class. 
+
+```{r}
 lda$addInstances(instance_list)
+```
+
+Then we set a few additional parameters. Note that this is the occasio when you can set the number of threads to be used. 
+
+```{r}
 lda$setNumThreads(1L)
 lda$setTopicDisplay(50L, 10L)
 lda$setNumIterations(150L)
-lda$estimate()
-# lda$write(rJava::.jnew("java/io/File", destfile))
 ```
 
-# Load topicmodel and turn it into LDA_Gibbs
+Use the estimate method to trigger the training of the topic model.
 
 ```{r}
-# mallet_lda <- mallet_load_topicmodel(destfile)
+lda$estimate()
+```
+
+There is a great bandwith of tools available for the LDA topicmodels trained using the topicmoddels package. To be able to use it, use the `as_LDA()` function for type conversion.
+
+```{r}
 topicmodels_lda <- as_LDA(lda)
 ```
 
+
+## Perspectives
 
 
 

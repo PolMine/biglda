@@ -1,15 +1,21 @@
-.onLoad <- function(libname, pkgname) {
+#' @importFrom rJava .jpackage
+.onAttach <- function(libname, pkgname){
   if (mallet_is_installed()){
-    rJava::.jpackage(
-      pkgname,
-      jars = "mallet-2.0.8/lib/mallet-deps.jar",
+    .jpackage(
+      pkgname, jars = "mallet-2.0.8/lib/mallet-deps.jar",
       morePaths = system.file(package = pkgname, lib.loc = libname, "java", "mallet-2.0.8", "class"),
       lib.loc = libname
     )
-    if ("mallet.jar" %in% basename(rJava::.jclassPath())){
-      packageStartupMessage("Presumably mallet is loaded, slightly diffent, potential problem")
-    }
   } else {
-    packageStartupMessage("mallet not present, call biglda::mallet_install()")
+    .jpackage(pkgname, lib.loc = libname) # Nothing will be added to classpath
+    packageStartupMessage("No mallet installation found. Use mallet_install() for installation!")
+  }
+
+  if ("mallet.jar" %in% basename(rJava::.jclassPath())){
+    packageStartupMessage(
+      "The Java Archive 'mallet.jar' included in the R package 'mallet' is on the classpath. ", 
+      "It includes a ParallelTopicModel class not compatible with the functionality of the biglda packaage. ",
+      "To avoid error messages, avoid loading the 'mallet' and the 'biglda' package at the same time."
+    )
   }
 }

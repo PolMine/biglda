@@ -33,7 +33,10 @@ LazyData: false
 VignetteBuilder: knitr
 Collate:
   'biglda.R'
-  'mallet.R'
+  'utils.R'
+  'fileops.R'
+  'as.instance_list.R'
+  'mapping.R'
   'gensim.R'
   'zzz.R'
 RoxygenNote: 7.0.2

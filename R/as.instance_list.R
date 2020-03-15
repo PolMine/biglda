@@ -73,27 +73,25 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
   if (verbose) message("... decode token stream")
   token_stream_list <- get_token_stream(x, p_attribute = p_attribute)
   
-  if (verbose) message("... created instances")
-  instance <- .jnew(
-    "cc.mallet.types.Instance",
-    .jnew("java.lang.Object"),
-    .jnew("java.lang.Object"),
-    .jnew("java.lang.Object"),
-    .jnew("java.lang.Object")
-  )
-  instances <- pblapply(
+  if (verbose) message("... creating instances")
+  instance_list <- rJava::.jnew("cc/mallet/types/InstanceList")
+  pblapply(
     token_stream_list,
     function(token_stream){
       token_sequence <- .jnew("cc/mallet/types/TokenSequence")
       token_sequence$addAll(.jarray(token_stream))
+      instance <- .jnew(
+        "cc.mallet.types.Instance",
+        .jnew("java.lang.Object"),
+        .jnew("java.lang.Object"),
+        .jnew("java.lang.Object"),
+        .jnew("java.lang.Object")
+      )
       instance$setData(token_sequence)
-      pipe$instanceFrom(instance)
+      instance_list$add(pipe$instanceFrom(instance))
+      NULL
     }
   )
-  
-  # Add instances to InstanceList
-  instance_list <- rJava::.jnew("cc/mallet/types/InstanceList")
-  dummy <- pblapply(instances, function(i) instance_list$add(instance))
   instance_list
 })
 
@@ -132,16 +130,25 @@ setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
   # Create InstanceList.
   
   instance_list <- rJava::.jnew("cc/mallet/types/InstanceList", lexicon, lexicon)
-  dummy <- pblapply(
+  dummy <- lapply(
     x,
     function(ids){
       feature_sequence <- .jnew("cc/mallet/types/FeatureSequence", lexicon, ids)
-      if (instance$isLocked()) instance$unLock()
+      instance <- .jnew(
+        "cc.mallet.types.Instance",
+        .jnew("java.lang.Object"),
+        .jnew("java.lang.Object"),
+        .jnew("java.lang.Object"),
+        .jnew("java.lang.Object")
+      )
+      instance$setTarget(target)
+      # if (instance$isLocked()) instance$unLock()
       instance$setData(feature_sequence)
       instance_list$add(instance)
       invisible(NULL)
     }
   )
+  instance_list
 })
 
 #' @rdname as.instance_list

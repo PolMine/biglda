@@ -123,8 +123,6 @@ mallet_load_word_weights <- function(filename){
 #' @rdname word_weights
 #' @export mallet_save_word_weights
 mallet_save_word_weights <- function(model, destfile = tempfile()){
-  if (!requireNamespace("rJava", quietly = TRUE))
-    stop("Package 'rJava' required, but not available.")
   file <- rJava::.jnew("java/io/File", destfile)
   file_writer <- rJava::.jnew("java/io/FileWriter", file)
   print_writer <- rJava::new(rJava::J("java/io/PrintWriter"), file_writer)

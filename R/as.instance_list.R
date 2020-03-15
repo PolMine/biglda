@@ -130,7 +130,7 @@ setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
   # Create InstanceList.
   
   instance_list <- rJava::.jnew("cc/mallet/types/InstanceList", lexicon, lexicon)
-  dummy <- lapply(
+  dummy <- pblapply(
     x,
     function(ids){
       feature_sequence <- .jnew("cc/mallet/types/FeatureSequence", lexicon, ids)

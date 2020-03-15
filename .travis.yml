@@ -12,6 +12,8 @@ addons:
 before_install:
   - Rscript -e 'install.packages("rmarkdown")'
   - Rscript -e 'install.packages("rJava")'
+  - Rscript -e 'install.packages("devtools")'
+  - Rscript -e 'devtools::install_github("PolMine/polmineR", ref = "dev")'
 
 r_packages:
   - tm

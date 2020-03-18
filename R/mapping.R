@@ -1,7 +1,15 @@
-#' @importClassesFrom topicmodels TopicModel
-#' @exportClass LDA_matched
-#' @rdname mapping
-setClass("LDA_matched", contains = "TopicModel")
+#' @importClassesFrom topicmodels TopicModel LDA LDA_Gibbscontrol
+#' @noRd
+setClass(
+  "LDA_Gibbs",
+  representation(
+    seedwords = "ANY",
+    z = "integer"
+  ),
+  contains = "LDA",
+  prototype(control = new("LDA_Gibbscontrol")
+  )
+)
 
 
 #' Convert mallet LDA to topicanalysis class
@@ -50,8 +58,8 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
     beta <- log(beta)
   }
   
-  new(
-    "LDA_matched",
+  y <- new(
+    "LDA_Gibbs",
     Dim = dimensions,
     k = x$getNumTopics(),
     terms = alphabet,
@@ -61,5 +69,9 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
     iter = x$numIterations,
     control = new("LDA_Gibbscontrol")
   )
+  
+  # dirty hack to compensate that the LDA_Gibbs class is not exported
+  attr(attr(y, "class"), "package") <- "topicmodels" 
+  y
 }
 

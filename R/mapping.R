@@ -23,7 +23,7 @@ setClass("LDA_matched", contains = "TopicModel")
 #' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
 as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
-  if (!grepl("ParallelTopicModel", x$getClass()$toString()))
+  if (!grepl("RTopicModel", x$getClass()$toString()))
     stop("incoming object needs to be class ParallelTopicModel")
   
   if (verbose) message("... getting number of documents and number of terms")
@@ -37,6 +37,7 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
   if (verbose) message("... getting document names")
   docs <- pblapply(0L:(x$data$size() - 1L), function(i) x$data$get(i)$instance$getName())
+  docs <- x$getDocumentNames()
   
   if (is.null(gamma)){
     if (verbose) message("... getting topic probabilities (gamma matrix)")

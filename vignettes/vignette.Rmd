@@ -77,7 +77,7 @@ The first next step is to feed the data to be modelled, i.e. the instance_list i
 lda$addInstances(instance_list)
 ```
 
-Then we set a few additional parameters. Note that this is the occasio when you can set the number of threads to be used. 
+Then we set a additional parameters. In this vein, we also set the number of threads to be used.
 
 ```{r}
 lda$setNumThreads(1L)

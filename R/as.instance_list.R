@@ -28,12 +28,13 @@
 #' 
 #'   instance_list <- as.instance_list(speeches)
 #' 
-#'   lda <- rJava::.jnew("cc/mallet/topics/ParallelTopicModel", 25L, 5.1, 0.1)
+#'   lda <- rJava::.jnew("cc/mallet/topics/RTopicModel", 25, 5.1, 0.1)
 #'   lda$addInstances(instance_list)
 #'   lda$setNumThreads(1L)
 #'   lda$setTopicDisplay(50L, 10L)
 #'   lda$setNumIterations(150L)
 #'   lda$estimate()
+#'   # destfile <- tempfile()
 #'   # lda$write(rJava::.jnew("java/io/File", destfile))
 #' 
 #' # Load topicmodel and turn it into LDA_Gibbs
@@ -88,6 +89,7 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
         .jnew("java.lang.Object")
       )
       instance$setData(token_sequence)
+      instance$setName(rJava::.jnew("java/lang/String", "foo"))
       instance_list$add(pipe$instanceFrom(instance))
       NULL
     }

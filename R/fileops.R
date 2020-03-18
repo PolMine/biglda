@@ -12,7 +12,7 @@
 #' pta$write(rJava::.jnew("java/io/File", destfile))
 #' pta_reloaded <- mallet_load_topicmodel(destfile)
 mallet_load_topicmodel <- function(filename){
-  rJava::J("cc/mallet/topics/ParallelTopicModel")$read(rJava::.jnew("java/io/File", filename))
+  rJava::J("cc/mallet/topics/RTopicModel")$read(rJava::.jnew("java/io/File", filename))
 }
 
 #' @param n_topics Number of topics (\code{integer} value).
@@ -25,7 +25,7 @@ mallet_load_topicmodel <- function(filename){
 #' @rdname paralleltopicmodel
 #' @export ParallelTopicModel    
 ParallelTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
-  rJava::.jnew("cc/mallet/topics/ParallelTopicModel", n_topics, alpha_sum, beta)
+  rJava::.jnew("cc/mallet/topics/RTopicModel", as.numeric(n_topics), alpha_sum, beta)
 }
 
 

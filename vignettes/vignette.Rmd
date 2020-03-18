@@ -95,9 +95,6 @@ There is a great bandwith of tools available for the LDA topicmodels trained usi
 
 ```{r}
 topicmodels_lda <- as_LDA(lda)
-lda_file <- "~/Lab/tmp/lda.RData"
-saveRDS(object = topicmodels_lda, file = lda_file)
-topicmodels_lda_restored <- readRDS(lda_file)
 ```
 
 

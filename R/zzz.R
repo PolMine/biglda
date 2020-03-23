@@ -3,8 +3,11 @@
   if (mallet_is_installed()){
     .jpackage(
       pkgname, jars = "mallet-2.0.8/lib/mallet-deps.jar",
-      morePaths = system.file(package = pkgname, lib.loc = libname, "java", "mallet-2.0.8", "class"),
-      lib.loc = libname
+      morePaths = c(
+        system.file(package = pkgname, lib.loc = libname, "java"),
+        system.file(package = pkgname, lib.loc = libname, "java", "mallet-2.0.8", "class")
+      ),
+      lib.loc = libname,
     )
   } else {
     .jpackage(pkgname, lib.loc = libname) # Nothing will be added to classpath

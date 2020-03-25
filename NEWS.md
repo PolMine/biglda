@@ -1,6 +1,9 @@
 biglda 0.0.0.9003
 =================
 * java class added to access model diagnostics for RTopicModel
+* Added function `mallet_get_topic_model_diagnostics()` that will extract model diagnostics
+  from RTopicModel java class object.
+
 
 biglda 0.0.0.9002
 =================

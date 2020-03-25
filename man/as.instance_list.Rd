@@ -55,16 +55,15 @@ if (!mallet_is_installed()) mallet_install()
 polmineR::use("polmineR")
 speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 
-  instance_list <- as.instance_list(speeches)
-
-  lda <- rJava::.jnew("cc/mallet/topics/RTopicModel", 25, 5.1, 0.1)
-  lda$addInstances(instance_list)
-  lda$setNumThreads(1L)
-  lda$setTopicDisplay(50L, 10L)
-  lda$setNumIterations(150L)
-  lda$estimate()
-  # destfile <- tempfile()
-  # lda$write(rJava::.jnew("java/io/File", destfile))
+instance_list <- as.instance_list(speeches)
+lda <- ParallelTopicModel(25, 5.1, 0.1)
+lda$addInstances(instance_list)
+lda$setNumThreads(1L)
+lda$setTopicDisplay(50L, 10L)
+lda$setNumIterations(150L)
+lda$estimate()
+# destfile <- tempfile()
+# lda$write(rJava::.jnew("java/io/File", destfile))
 
 # Load topicmodel and turn it into LDA_Gibbs
 

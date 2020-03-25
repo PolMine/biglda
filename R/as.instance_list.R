@@ -26,16 +26,15 @@
 #' polmineR::use("polmineR")
 #' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 #' 
-#'   instance_list <- as.instance_list(speeches)
-#' 
-#'   lda <- rJava::.jnew("cc/mallet/topics/RTopicModel", 25, 5.1, 0.1)
-#'   lda$addInstances(instance_list)
-#'   lda$setNumThreads(1L)
-#'   lda$setTopicDisplay(50L, 10L)
-#'   lda$setNumIterations(150L)
-#'   lda$estimate()
-#'   # destfile <- tempfile()
-#'   # lda$write(rJava::.jnew("java/io/File", destfile))
+#' instance_list <- as.instance_list(speeches)
+#' lda <- ParallelTopicModel(25, 5.1, 0.1)
+#' lda$addInstances(instance_list)
+#' lda$setNumThreads(1L)
+#' lda$setTopicDisplay(50L, 10L)
+#' lda$setNumIterations(150L)
+#' lda$estimate()
+#' # destfile <- tempfile()
+#' # lda$write(rJava::.jnew("java/io/File", destfile))
 #' 
 #' # Load topicmodel and turn it into LDA_Gibbs
 #' 
@@ -174,4 +173,39 @@ mallet_instance_list_store <- function(x, filename = tempfile()){
 #' @importFrom rJava J
 mallet_instance_list_load <- function(filename){
   J("cc.mallet.types.InstanceList")$load(rJava::.jnew("java/io/File", filename))
+}
+
+
+#' Get topic model diagnostics.
+#' 
+#' The MALLET topic model toolkit includes a class \code{TopicModelDiagnostics}
+#' able to prepare a set of metrics on the topics of a topic model. The function
+#' \code{mallet_get_topic_model_diagnostics} will return a \code{data.table}
+#' with these diagnostics. See the \url{mallet
+#' documentatio}{http://mallet.cs.umass.edu/diagnostics.php} for an explanation
+#' of the metrics.
+#' @param x An instance of the RTopicModel class (java object).
+#' @param n Number of the top words that will be evaluated.
+#' @examples 
+#' \dontrun{
+#' dt <- mallet_get_topic_model_diagnostics(lda)
+#' }
+#' @importFrom data.table := rbindlist
+#' @importFrom xml2 read_xml xml_find_all xml_attrs
+mallet_get_topic_model_diagnostics <- function(x, n = 100L){
+  if (isFALSE(grepl("RTopicModel$", x$getClass()$toString()))){
+    stop("Input object is expect to be an instance of the RTopicModel class")
+  }
+  topic_model_diagnostics <- rJava::.jnew("RTopicModelDiagnostics", x, as.integer(n))
+  topic_model_diagnostics_char <- topic_model_diagnostics$toXML()
+  topic_model_diagnostics_xml <- xml2::read_xml(topic_model_diagnostics_char)
+  nodes <- xml2::xml_find_all(topic_model_diagnostics_xml, xpath = "/model/topic")
+  y <- rbindlist(
+    lapply(
+      xml_attrs(nodes),
+      function(x) as.data.table(as.list(setNames(as.numeric(x), names(x))))
+    )
+  )
+  y[, "id" := as.integer(y[["id"]])]
+  y
 }

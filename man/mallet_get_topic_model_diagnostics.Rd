@@ -15,9 +15,9 @@ mallet_get_topic_model_diagnostics(x, n = 100L)
 The MALLET topic model toolkit includes a class \code{TopicModelDiagnostics}
 able to prepare a set of metrics on the topics of a topic model. The function
 \code{mallet_get_topic_model_diagnostics} will return a \code{data.table}
-with these diagnostics. See the \url{mallet
-documentatio}{http://mallet.cs.umass.edu/diagnostics.php} for an explanation
-of the metrics.
+with these diagnostics. See the
+\href{http://mallet.cs.umass.edu/diagnostics.php}{mallet documentation} for an
+explanation of the metrics.
 }
 \examples{
 \dontrun{

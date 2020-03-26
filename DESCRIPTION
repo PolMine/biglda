@@ -1,8 +1,8 @@
 Package: biglda
 Type: Package
 Title: Tools for fast LDA topic modelling for big corpora
-Version: 0.0.0.9003
-Date: 2020-03-23
+Version: 0.0.0.9004
+Date: 2020-03-26
 Authors@R: c(
   person("Andreas", "Blaette", role = c("aut", "cre"), email = "andreas.blaette@uni-due.de", comment = c(ORCID = "0000-0001-8970-8010")),
   person("Christoph", "Leonhardt", role = "ctb")
@@ -19,6 +19,7 @@ Imports:
   data.table,
   topicmodels,
   pbapply,
+  parallel,
   rJava,
   slam,
   xml2
@@ -38,5 +39,6 @@ Collate:
   'as.instance_list.R'
   'mapping.R'
   'gensim.R'
+  'metrics.R'
   'zzz.R'
 RoxygenNote: 7.0.2

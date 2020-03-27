@@ -3,11 +3,17 @@
 \name{FastCao2009}
 \alias{FastCao2009}
 \alias{FastCao2009,TopicModel-method}
+\alias{FastCao2009,matrix-method}
+\alias{FastCao2009,jobjRef-method}
 \title{Fast Implementation of Cao et al. 2009}
 \usage{
 FastCao2009(x)
 
 \S4method{FastCao2009}{TopicModel}(x)
+
+\S4method{FastCao2009}{matrix}(x)
+
+\S4method{FastCao2009}{jobjRef}(x)
 }
 \arguments{
 \item{x}{A LDA model (S4 class from topicmodels package).}

@@ -9,6 +9,7 @@
 #' @rdname FastCao2009
 setGeneric("FastCao2009", function(x) standardGeneric("FastCao2009"))
 
+
 #' @examples 
 #' if (!mallet_is_installed()) mallet_install()
 #' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
@@ -17,16 +18,28 @@ setGeneric("FastCao2009", function(x) standardGeneric("FastCao2009"))
 #' FastCao2009(lda2)
 #' @rdname FastCao2009
 setMethod("FastCao2009", "TopicModel", function(x){
-  beta_exp <- exp(x@beta)
-  cp <- crossprod(t(beta_exp))
+  beta <- exp(x@beta)
+  FastCao2009(beta)
+})
+
+
+#' @rdname FastCao2009
+setMethod("FastCao2009", "matrix", function(x){
+  cp <- crossprod(t(x))
   rtdg <- sqrt(diag(cp))
   almost <- tcrossprod(rtdg)
   yep <- cp / almost
   diag(yep) <- 0
   yep[lower.tri(yep)] <- 0
-  metric <- sum(rowSums(yep)) / (x@k*(x@k-1)/2)
-  metric
+  sum(rowSums(yep)) / (nrow(x) * (nrow(x) - 1L) / 2)
 })
+
+#' @rdname FastCao2009
+setMethod("FastCao2009", "jobjRef", function(x){
+  beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
+  FastCao2009(beta)
+})
+
 
 #' Fast Implementation of Deveaud 2014
 #' 

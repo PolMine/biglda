@@ -1,0 +1,20 @@
+---
+title: "Searching the Super Topic Model"
+author: "Andreas Blätte (andreas.blaette@uni-due.de)"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+bibliography: topicmodelling.bibtex
+vignette: >
+  %\VignetteIndexEntry{Supermodel}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
+---
+
+## Why
+
+```{r}
+library(biglda)
+library(polmineR)
+```

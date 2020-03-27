@@ -95,5 +95,68 @@ setMethod("FastDeveaud2014", "TopicModel", function(x, cl = parallel::detectCore
 #' @exportMethod FastDeveaud2014
 setMethod("FastDeveaud2014", "jobjRef", function(x, cl = parallel::detectCores() - 1L){
   beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
-  FastDeveaud2014(beta)
+  FastDeveaud2014(beta, cl = cl)
 })
+
+
+#' Fast Implementation of Arun 2014
+#' 
+#' @param x A topic model.
+#' @param doclengths Integer vector.
+#' @param gamma The gamma matrix.
+#' @param ... Further arguments
+#' @rdname FastArun2010
+#' @exportMethod FastArun2010
+setGeneric("FastArun2010", function(x, ...) standardGeneric("FastArun2010"))
+
+
+#' @rdname FastArun2010
+#' @exportMethod FastArun2010
+#' @examples
+#' \dontrun{
+#' if (!mallet_is_installed()) mallet_install()
+#' library(polmineR)
+#' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' instance_list <- as.instance_list(speeches)
+#' lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
+#' lda$addInstances(instance_list)
+#' lda$setNumThreads(1L)
+#' lda$setNumIterations(150L)
+#' lda$estimate()
+#' lda2 <- as_LDA(lda)
+#' FastArun2010(lda2, doclengths = summary(speeches)[["size"]])
+#' }
+setMethod("FastArun2010", "TopicModel", function(x, doclengths){
+  FastArun2010(x = exp(x@beta), gamma = x@gamma, doclengths = doclengths)
+})
+
+
+#' @rdname FastArun2010
+#' @exportMethod FastArun2010
+setMethod("FastArun2010", "matrix", function(x, gamma, doclengths){
+  m1.svd <- svd(x)
+  cm1 <- as.matrix(m1.svd$d)
+  # matrix M2 document-topic
+  cm2  <- doclengths %*% gamma    # crossprod(len, m2)
+  norm <- norm(as.matrix(doclengths), type = "m")
+  cm2  <- as.vector(cm2 / norm)
+  # symmetric Kullback-Leibler divergence
+  sum(cm1*log(cm1/cm2)) + sum(cm2*log(cm2/cm1))
+})
+
+
+
+#' @rdname FastArun2010
+#' @exportMethod FastArun2010
+#' @examples
+#' if (!mallet_is_installed()) mallet_install()
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' lda <- mallet_load_topicmodel(fname)
+#' FastArun2010(lda)
+setMethod("FastArun2010", "jobjRef", function(x){
+  beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
+  gamma <- rJava::.jevalArray(x$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
+  doclengths <- x$getDocLengthCounts()
+  FastArun2010(x = beta, gamma = gamma, doclengths = doclengths)
+})
+

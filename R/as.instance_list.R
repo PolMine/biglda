@@ -23,7 +23,7 @@
 #' 
 #' if (!mallet_is_installed()) mallet_install()
 #' 
-#' polmineR::use("polmineR")
+#' library(polmineR)
 #' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 #' 
 #' instance_list <- as.instance_list(speeches)
@@ -42,7 +42,6 @@
 #' 
 #' lda2 <- mallet_load_topicmodel(destfile)
 #' topicmodels_lda <- as_LDA(lda)
-#' 
 #' @rdname as.instance_list
 #' @importFrom polmineR get_token_stream
 #' @exportMethod as.instance_list

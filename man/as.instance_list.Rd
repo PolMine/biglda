@@ -52,7 +52,7 @@ The function \code{mallet_instance_list_load} will load a Java
 
 if (!mallet_is_installed()) mallet_install()
 
-polmineR::use("polmineR")
+library(polmineR)
 speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 
 instance_list <- as.instance_list(speeches)
@@ -71,7 +71,6 @@ lda$write(rJava::.jnew("java/io/File", destfile))
 
 lda2 <- mallet_load_topicmodel(destfile)
 topicmodels_lda <- as_LDA(lda)
-
 library(polmineR)
 use("polmineR")
 speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")

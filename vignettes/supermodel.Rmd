@@ -12,9 +12,42 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Why
 
-```{r}
+
+```{r, eval = FALSE}
 library(biglda)
 library(polmineR)
+library(parallel)
+```
+
+```{r, eval = FALSE}
+if (!mallet_is_installed()) mallet_install()
+cores_to_use <- detectCores() - 1L
+```
+
+```{r make_instance_list, eval = FALSE}
+speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+instance_list <- as.instance_list(speeches)
+```
+
+```{r fit_models, eval = FALSE}
+models <- list()
+for (k in seq(from = 10, to = 150, by = 10)){
+    message("... fitting model for k: ", k)
+    lda <- BigTopicModel(n_topics = k, alpha_sum = 5.1, beta = 0.1)
+    lda$addInstances(instance_list)
+    lda$setNumThreads(cores_to_use)
+    lda$setNumIterations(1000L)
+    lda$estimate()
+    # lda$write(rJava::.jnew("java/io/File",path.expand("/FILENAME/")))
+    models[[as.character(k)]] <- lda
+}
+```
+
+```{r calc_metrics, eval = FALSE}
+list(
+  cao2009 = sapply(models, FastCao2009),
+  deveaud2014 = sapply(models, FastDeveaud2014, cl = cores_to_use),
+  arun2010 = sapply(models, FastArun2010)
+)
 ```

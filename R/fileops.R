@@ -36,6 +36,15 @@ ParallelTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
 #'   lengths.
 #' @rdname paralleltopicmodel
 #' @export BigTopicModel
+#' @examples
+#' bigmodel <- BigTopicModel()
+#' bigmodel$read(
+#'   rJava::.jnew(
+#'     "java/io/File",
+#'     system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#'   )
+#' )
+#' bigmodel$getDocLengthCounts()
 BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
   rJava::.jnew("BigTopicModel", as.numeric(n_topics), alpha_sum, beta)
 }

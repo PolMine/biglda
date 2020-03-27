@@ -31,8 +31,8 @@ setClass(
 #' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
 as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
-  if (!grepl("RTopicModel", x$getClass()$toString()))
-    stop("incoming object needs to be class ParallelTopicModel")
+  if (!grepl("(RTopicModel|BigTopicModel)", x$getClass()$toString()))
+    stop("incoming object needs to be class ParallelTopicModel/RTopicModel/BigTopicModel")
   
   if (verbose) message("... getting number of documents and number of terms")
   dimensions <- c(

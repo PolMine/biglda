@@ -4,20 +4,29 @@
 #' method for LDA model selection and offers an implementation that is 
 #' substantially faster than ldatuning.
 #' 
-#' @param model A LDA model (S4 class from topicmodels package).
-#' @export density
-#' @rdname density
-density <- function(model){
-  beta_exp <- exp(model@beta)
+#' @param x A LDA model (S4 class from topicmodels package).
+#' @export FastCao2009
+#' @rdname FastCao2009
+setGeneric("FastCao2009", function(x) standardGeneric("FastCao2009"))
+
+#' @examples 
+#' if (!mallet_is_installed()) mallet_install()
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' lda <- mallet_load_topicmodel(fname)
+#' lda2 <- as_LDA(lda)
+#' FastCao2009(lda2)
+#' @rdname FastCao2009
+setMethod("FastCao2009", "TopicModel", function(x){
+  beta_exp <- exp(x@beta)
   cp <- crossprod(t(beta_exp))
   rtdg <- sqrt(diag(cp))
   almost <- tcrossprod(rtdg)
   yep <- cp / almost
   diag(yep) <- 0
   yep[lower.tri(yep)] <- 0
-  metric <- sum(rowSums(yep)) / (model@k*(model@k-1)/2)
+  metric <- sum(rowSums(yep)) / (x@k*(x@k-1)/2)
   metric
-}
+})
 
 #' Fast Implementation of Deveaud 2014
 #' 

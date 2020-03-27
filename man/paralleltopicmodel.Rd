@@ -44,4 +44,7 @@ pta <- ParallelTopicModel()
 destfile <- tempfile()
 pta$write(rJava::.jnew("java/io/File", destfile))
 pta_reloaded <- mallet_load_topicmodel(destfile)
+fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+bigmodel <- mallet_load_topicmodel(fname)
+bigmodel$getDocLengthCounts()
 }

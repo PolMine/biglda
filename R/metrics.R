@@ -43,24 +43,29 @@ setMethod("FastCao2009", "jobjRef", function(x){
 
 #' Fast Implementation of Deveaud 2014
 #' 
-#' @param model A LDA model.
+#' @param x A topic model.
 #' @param cl Number of cores to use
 #' @importFrom parallel detectCores
 #' @importFrom pbapply pblapply
-FastDeveaud2014 <- function(model, cl = parallel::detectCores() - 1L){
-  m1 <- exp(model@beta)
-  if (any(m1 == 0)) { m1 <- m1 + .Machine$double.xmin } # prevent NaN
-  m2 <- t(m1)
+#' @rdname FastDeveaud2014
+#' @exportMethod FastDeveaud2014
+setGeneric("FastDeveaud2014", function(x, cl) standardGeneric("FastDeveaud2014"))
+
+
+#' @rdname FastDeveaud2014
+#' @exportMethod FastDeveaud2014
+setMethod("FastDeveaud2014", "matrix", function(x, cl = parallel::detectCores() - 1L){
+  if (any(x == 0)) { x <- x + .Machine$double.xmin } # prevent NaN
+  x_t <- t(x)
   dist <- pblapply(
-    1L:(ncol(m2) - 1L),
+    1L:(ncol(x_t) - 1L),
     function(i){
-      print(i)
-      m_min <- m2[, -(1:i)]
-      a <- m2[,i] * log(m2[,i] / m_min)
+      m_min <- x_t[, -(1:i)]
+      a <- x_t[,i] * log(x_t[,i] / m_min)
       b <- colSums(as.matrix(a))
       c <- sum(b) * 0.5
       
-      d <- m_min * log(m_min / m2[,i])
+      d <- m_min * log(m_min / x_t[,i])
       e <- colSums(as.matrix(d))
       f <- sum(e) * 0.5
       
@@ -68,5 +73,27 @@ FastDeveaud2014 <- function(model, cl = parallel::detectCores() - 1L){
     },
     cl = cl
   )
-  retval <- sum(unlist(dist)) / (model@k * (model@k - 1L))
-}
+  sum(unlist(dist)) / (nrow(x) * (nrow(x) - 1L))
+})
+
+
+
+#' @examples
+#' if (!mallet_is_installed()) mallet_install()
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' lda <- mallet_load_topicmodel(fname)
+#' lda2 <- as_LDA(lda)
+#' FastDeveaud2014(lda2, parallel::detectCores() - 1L)
+#' @rdname FastDeveaud2014
+#' @exportMethod FastDeveaud2014
+setMethod("FastDeveaud2014", "TopicModel", function(x, cl = parallel::detectCores() - 1L){
+  FastDeveaud2014(exp(x@beta), cl = cl)
+})
+
+
+#' @rdname FastDeveaud2014
+#' @exportMethod FastDeveaud2014
+setMethod("FastDeveaud2014", "jobjRef", function(x, cl = parallel::detectCores() - 1L){
+  beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
+  FastDeveaud2014(beta)
+})

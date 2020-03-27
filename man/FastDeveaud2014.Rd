@@ -2,15 +2,31 @@
 % Please edit documentation in R/metrics.R
 \name{FastDeveaud2014}
 \alias{FastDeveaud2014}
+\alias{FastDeveaud2014,matrix-method}
+\alias{FastDeveaud2014,TopicModel-method}
+\alias{FastDeveaud2014,jobjRef-method}
 \title{Fast Implementation of Deveaud 2014}
 \usage{
-FastDeveaud2014(model, cl = parallel::detectCores() - 1L)
+FastDeveaud2014(x, cl)
+
+\S4method{FastDeveaud2014}{matrix}(x, cl = parallel::detectCores() - 1L)
+
+\S4method{FastDeveaud2014}{TopicModel}(x, cl = parallel::detectCores() - 1L)
+
+\S4method{FastDeveaud2014}{jobjRef}(x, cl = parallel::detectCores() - 1L)
 }
 \arguments{
-\item{model}{A LDA model.}
+\item{x}{A topic model.}
 
 \item{cl}{Number of cores to use}
 }
 \description{
 Fast Implementation of Deveaud 2014
+}
+\examples{
+if (!mallet_is_installed()) mallet_install()
+fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+lda <- mallet_load_topicmodel(fname)
+lda2 <- as_LDA(lda)
+FastDeveaud2014(lda2, parallel::detectCores() - 1L)
 }

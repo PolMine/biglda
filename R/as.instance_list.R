@@ -29,6 +29,7 @@
 #' instance_list <- as.instance_list(speeches)
 #' lda <- ParallelTopicModel(25, 5.1, 0.1)
 #' lda$addInstances(instance_list)
+#' # lda$getDocLengthCounts()
 #' lda$setNumThreads(1L)
 #' lda$setTopicDisplay(50L, 10L)
 #' destfile <- tempfile()
@@ -39,7 +40,7 @@
 #' 
 #' # Load topicmodel and turn it into LDA_Gibbs
 #' 
-#' lda <- mallet_load_topicmodel(destfile)
+#' lda2 <- mallet_load_topicmodel(destfile)
 #' topicmodels_lda <- as_LDA(lda)
 #' 
 #' @rdname as.instance_list

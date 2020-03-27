@@ -12,7 +12,7 @@
 #' pta$write(rJava::.jnew("java/io/File", destfile))
 #' pta_reloaded <- mallet_load_topicmodel(destfile)
 mallet_load_topicmodel <- function(filename){
-  rJava::J("cc/mallet/topics/RTopicModel")$read(rJava::.jnew("java/io/File", filename))
+  rJava::J("BigTopicModel")$read(rJava::.jnew("java/io/File", filename))
 }
 
 #' @param n_topics Number of topics (\code{integer} value).
@@ -37,13 +37,8 @@ ParallelTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
 #' @rdname paralleltopicmodel
 #' @export BigTopicModel
 #' @examples
-#' bigmodel <- BigTopicModel()
-#' bigmodel$read(
-#'   rJava::.jnew(
-#'     "java/io/File",
-#'     system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
-#'   )
-#' )
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' bigmodel <- mallet_load_topicmodel(fname)
 #' bigmodel$getDocLengthCounts()
 BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
   rJava::.jnew("BigTopicModel", as.numeric(n_topics), alpha_sum, beta)

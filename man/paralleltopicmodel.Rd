@@ -3,11 +3,14 @@
 \name{mallet_load_topicmodel}
 \alias{mallet_load_topicmodel}
 \alias{ParallelTopicModel}
+\alias{BigTopicModel}
 \title{Instantiate and load mallet topicmodel}
 \usage{
 mallet_load_topicmodel(filename)
 
 ParallelTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
+
+BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 }
 \arguments{
 \item{filename}{Filename of a mallet topic model (ParallelTopicModel).}
@@ -29,6 +32,12 @@ The \code{ParallelTopicModel} function will instantial a Java class
   object with the same name from the mallet package, see the
   \href{http://mallet.cs.umass.edu/api/cc/mallet/topics/ParallelTopicModel.html}{mallet
   documentation} of the class.
+
+The \code{BigTopicModel} function will instantiate a Java class
+  object \code{BigTopicModel} which inherits from the RTopicModel and the
+  ParallelTopicModel class. It adds a method $getDocLengthCounts() to the
+  the classes it inherits from to provide a fast access to document 
+  lengths.
 }
 \examples{
 pta <- ParallelTopicModel()

@@ -60,14 +60,15 @@ lda <- ParallelTopicModel(25, 5.1, 0.1)
 lda$addInstances(instance_list)
 lda$setNumThreads(1L)
 lda$setTopicDisplay(50L, 10L)
+destfile <- tempfile()
+lda$setSaveSerializedModel(50L, rJava::.jnew("java/lang/String", destfile))
 lda$setNumIterations(150L)
 lda$estimate()
-# destfile <- tempfile()
-# lda$write(rJava::.jnew("java/io/File", destfile))
+lda$write(rJava::.jnew("java/io/File", destfile))
 
 # Load topicmodel and turn it into LDA_Gibbs
 
-# mallet_lda <- mallet_load_topicmodel(destfile)
+lda <- mallet_load_topicmodel(destfile)
 topicmodels_lda <- as_LDA(lda)
 
 library(polmineR)

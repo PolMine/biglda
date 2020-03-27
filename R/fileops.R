@@ -23,10 +23,23 @@ mallet_load_topicmodel <- function(filename){
 #'   \href{http://mallet.cs.umass.edu/api/cc/mallet/topics/ParallelTopicModel.html}{mallet
 #'   documentation} of the class.
 #' @rdname paralleltopicmodel
-#' @export ParallelTopicModel    
+#' @export ParallelTopicModel
 ParallelTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
   rJava::.jnew("cc/mallet/topics/RTopicModel", as.numeric(n_topics), alpha_sum, beta)
 }
+
+
+#' @details The \code{BigTopicModel} function will instantiate a Java class
+#'   object \code{BigTopicModel} which inherits from the RTopicModel and the
+#'   ParallelTopicModel class. It adds a method $getDocLengthCounts() to the
+#'   the classes it inherits from to provide a fast access to document 
+#'   lengths.
+#' @rdname paralleltopicmodel
+#' @export BigTopicModel
+BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
+  rJava::.jnew("BigTopicModel", as.numeric(n_topics), alpha_sum, beta)
+}
+
 
 
 .mallet_cmd <- function(mallet_bin_dir, sourcefile, destfile, topwords = 50, topics = 50, iterations = 2000, threads = NULL){

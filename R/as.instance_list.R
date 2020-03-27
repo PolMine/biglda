@@ -31,14 +31,15 @@
 #' lda$addInstances(instance_list)
 #' lda$setNumThreads(1L)
 #' lda$setTopicDisplay(50L, 10L)
+#' destfile <- tempfile()
+#' lda$setSaveSerializedModel(50L, rJava::.jnew("java/lang/String", destfile))
 #' lda$setNumIterations(150L)
 #' lda$estimate()
-#' # destfile <- tempfile()
-#' # lda$write(rJava::.jnew("java/io/File", destfile))
+#' lda$write(rJava::.jnew("java/io/File", destfile))
 #' 
 #' # Load topicmodel and turn it into LDA_Gibbs
 #' 
-#' # mallet_lda <- mallet_load_topicmodel(destfile)
+#' lda <- mallet_load_topicmodel(destfile)
 #' topicmodels_lda <- as_LDA(lda)
 #' 
 #' @rdname as.instance_list
@@ -76,10 +77,10 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
   if (verbose) message("... creating instances")
   instance_list <- rJava::.jnew("cc/mallet/types/InstanceList")
   pblapply(
-    token_stream_list,
-    function(token_stream){
+    names(token_stream_list),
+    function(doc_name){
       token_sequence <- .jnew("cc/mallet/types/TokenSequence")
-      token_sequence$addAll(.jarray(token_stream))
+      token_sequence$addAll(.jarray(token_stream_list[[doc_name]]))
       instance <- .jnew(
         "cc.mallet.types.Instance",
         .jnew("java.lang.Object"),
@@ -88,7 +89,9 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
         .jnew("java.lang.Object")
       )
       instance$setData(token_sequence)
-      instance$setName(rJava::.jnew("java/lang/String", "foo"))
+      instance$setName(rJava::.jnew("java/lang/String", doc_name))
+      instance$setTarget(rJava::.jnew("java/lang/String", "foo"))
+      instance$setSource(rJava::.jnew("java/lang/String", "foo"))
       instance_list$add(pipe$instanceFrom(instance))
       NULL
     }

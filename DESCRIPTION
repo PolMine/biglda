@@ -1,8 +1,8 @@
 Package: biglda
 Type: Package
 Title: Fast LDA topic modelling for big corpora
-Version: 0.0.0.9005
-Date: 2020-03-27
+Version: 0.0.0.9006
+Date: 2022-06-29
 Authors@R: c(
   person("Andreas", "Blaette", role = c("aut", "cre"), email = "andreas.blaette@uni-due.de", comment = c(ORCID = "0000-0001-8970-8010")),
   person("Christoph", "Leonhardt", role = "ctb")
@@ -41,4 +41,4 @@ Collate:
   'gensim.R'
   'metrics.R'
   'zzz.R'
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.2

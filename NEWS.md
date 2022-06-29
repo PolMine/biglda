@@ -1,3 +1,7 @@
+biglda 0.0.0.9006
+=================
+* 
+
 biglda 0.0.0.9003
 =================
 * java class added to access model diagnostics for RTopicModel

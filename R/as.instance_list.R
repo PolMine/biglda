@@ -54,12 +54,23 @@ setGeneric("as.instance_list", function(x, ...) standardGeneric("as.instance_lis
 #' use("polmineR")
 #' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 #' speeches_instance_list <- as.instance_list(speeches, p_attribute = "word")
+#' 
+#' # Pass argument 'subset' to remove stopwords
+#' terms_to_drop <- tm::stopwords("de")
+#' speeches_instance_list <- as.instance_list(
+#'   speeches,
+#'   p_attribute = "word",
+#'   subset = {!get(p_attribute) %in% bquote(.(terms_to_drop))}
+#' )
+#' @param ... Arguments passed into `get_token_stream()` call (e.g. argument
+#'   `subset` to apply stopwords).
+#' @param min_length Minimum length of documents after removing stopwords.
 #' @importFrom rJava .jarray
 #' @rdname as.instance_list
 #' @exportMethod as.instance_list
 #' @importFrom polmineR get_corpus
 #' @importMethodsFrom polmineR corpus p_attributes
-setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "word", verbose = TRUE){
+setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "word", verbose = TRUE, min_length = 1L, ...){
   
   if (verbose) message("... create alphabet")
   alphabet <- rJava::.jnew("cc/mallet/types/Alphabet", rJava::.jnew("java/lang/String")$getClass())
@@ -72,7 +83,28 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
   pipe$setTargetAlphabet(alphabet)
   
   if (verbose) message("... decode token stream")
-  token_stream_list <- get_token_stream(x, p_attribute = p_attribute)
+  token_stream_list <- get_token_stream(x, p_attribute = p_attribute, ...)
+  
+  if (!is.null(min_length)) {
+    if (verbose) message("... removing short documents.")
+    doc_lengths <- pblapply(token_stream_list, length)
+    documents_to_keep <- which(doc_lengths >= min_length)
+    
+    if (length(documents_to_keep) == 0)
+      stop("... all documents are shorter than the minimum length.")
+    
+    if (verbose){
+      message(
+        sprintf(
+          "... removing %s out of %s documents shorter than %s tokens.", 
+          length(token_stream_list) - length(documents_to_keep), 
+          length(token_stream_list),
+          min_length
+        )
+      )
+    }
+    token_stream_list <- token_stream_list[documents_to_keep]
+  }
   
   if (verbose) message("... creating instances")
   instance_list <- rJava::.jnew("cc/mallet/types/InstanceList")

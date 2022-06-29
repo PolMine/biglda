@@ -10,7 +10,7 @@
 \usage{
 as.instance_list(x, ...)
 
-\S4method{as.instance_list}{partition_bundle}(x, p_attribute = "word", verbose = TRUE)
+\S4method{as.instance_list}{partition_bundle}(x, p_attribute = "word", verbose = TRUE, ...)
 
 \S4method{as.instance_list}{list}(x, corpus, p_attribute = "word")
 
@@ -21,7 +21,8 @@ mallet_instance_list_load(filename)
 \arguments{
 \item{x}{A \code{partition_bundle} object.}
 
-\item{...}{further parameters}
+\item{...}{Arguments passed into `get_token_stream()` call (e.g. argument
+`subset` to apply stopwords).}
 
 \item{p_attribute}{The p_attribute to use, typically "word" or "lemma".}
 
@@ -73,8 +74,16 @@ lda2 <- mallet_load_topicmodel(destfile)
 topicmodels_lda <- as_LDA(lda)
 library(polmineR)
 use("polmineR")
-speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- as.spleeches("GERMAPARLMINI", s_attribute_name = "speaker")
 speeches_instance_list <- as.instance_list(speeches, p_attribute = "word")
+
+# Pass argument 'subset' to remove stopwords
+terms_to_drop <- tm::stopwords("de")
+speeches_instance_list <- as.instance_list(
+  speeches,
+  p_attribute = "word",
+  subset = {!get(p_attribute) \%in\% bquote(.(terms_to_drop))}
+)
 speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 id_list <- p_attributes(speeches, p_attribute = "word", decode = FALSE)
 instance_list <- as.instance_list(id_list, corpus = "GERMAPARLMINI", p_attribute = "word")

@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: topicmodelling.bibtex
 vignette: >
-  %\VignetteIndexEntry{Introducing biglda}
+  %\VignetteIndexEntry{Introducing the 'biglda'-package}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -54,6 +54,7 @@ The biglda package works seamlessly with the polmineR package. In our example, w
 
 ```{r}
 library(polmineR)
+use("polmineR")
 speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 ```
 

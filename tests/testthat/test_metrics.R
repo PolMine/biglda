@@ -50,7 +50,7 @@ test_that(
     
     expect_identical(me, ldatuning_deveaud2014)
     
-    expect_identical(
+    expect_equal(
       FastDeveaud2014(lda_mallet, cl = parallel::detectCores() - 1L),
       FastDeveaud2014(lda_topicmodels, cl = parallel::detectCores() - 1L)
     )

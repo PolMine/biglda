@@ -4,15 +4,18 @@
 \alias{as.instance_list}
 \alias{as.instance_list,partition_bundle-method}
 \alias{as.instance_list,list-method}
+\alias{as.instance_list,character-method}
 \alias{mallet_instance_list_store}
 \alias{mallet_instance_list_load}
 \title{Interface to mallet topicmodelling.}
 \usage{
 as.instance_list(x, ...)
 
-\S4method{as.instance_list}{partition_bundle}(x, p_attribute = "word", verbose = TRUE, ...)
+\S4method{as.instance_list}{partition_bundle}(x, p_attribute = "word", verbose = TRUE, min_length = 1L, ...)
 
 \S4method{as.instance_list}{list}(x, corpus, p_attribute = "word")
+
+\S4method{as.instance_list}{character}(x, regex = "[\\\\p{L}]+", tolower = FALSE, stopwords = NULL)
 
 mallet_instance_list_store(x, filename = tempfile())
 
@@ -28,8 +31,19 @@ mallet_instance_list_load(filename)
 
 \item{verbose}{A \code{logical} value, whether to be verbose.}
 
+\item{min_length}{Minimum length of documents after removing stopwords.}
+
 \item{corpus}{A CWB indexed corpus, defined either by corpus ID, or
 \code{corpus} object.}
+
+\item{regex}{A regular expression (length-one `character` vector) used by
+Mallet Java code for splitting `character` vector into tokens.}
+
+\item{tolower}{A `logical` value, whether to lowercase tokens (performed)
+by Mallet Java code.}
+
+\item{stopwords}{Either a path with a plain text file with stopwords (one per
+line), or a `character` vector.}
 
 \item{filename}{Where to store the Java-object.}
 }
@@ -52,8 +66,9 @@ The function \code{mallet_instance_list_load} will load a Java
 # Preparations: Create instance list
 
 if (!mallet_is_installed()) mallet_install()
-
 library(polmineR)
+use("polmineR")
+
 speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 
 instance_list <- as.instance_list(speeches)
@@ -74,7 +89,7 @@ lda2 <- mallet_load_topicmodel(destfile)
 topicmodels_lda <- as_LDA(lda)
 library(polmineR)
 use("polmineR")
-speeches <- as.spleeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 speeches_instance_list <- as.instance_list(speeches, p_attribute = "word")
 
 # Pass argument 'subset' to remove stopwords
@@ -87,4 +102,11 @@ speeches_instance_list <- as.instance_list(
 speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 id_list <- p_attributes(speeches, p_attribute = "word", decode = FALSE)
 instance_list <- as.instance_list(id_list, corpus = "GERMAPARLMINI", p_attribute = "word")
+instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker") \%>\%
+  get_token_stream(p_attribute = "word", collapse = " ") \%>\% 
+  unlist() \%>\%
+  as.instance_list()
+}
+\author{
+Andreas Blaette, David Mimno
 }

@@ -67,8 +67,4 @@ if (requireNamespace("reticulate")){
 }
 \author{
 Andreas Blaette
-
-Andreas Blaette
-
-Andreas Blaette
 }

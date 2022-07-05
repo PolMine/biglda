@@ -1,8 +1,8 @@
 Package: biglda
 Type: Package
 Title: Fast LDA topic modelling for big corpora
-Version: 0.0.0.9006
-Date: 2022-06-29
+Version: 0.0.0.9007
+Date: 2022-07-04
 Authors@R: c(
   person("Andreas", "Blaette", role = c("aut", "cre"), email = "andreas.blaette@uni-due.de", comment = c(ORCID = "0000-0001-8970-8010")),
   person("Christoph", "Leonhardt", role = "ctb")
@@ -28,9 +28,9 @@ Suggests:
   knitr,
   rmarkdown,
   reticulate,
-  webshot
+  webshot,
+  tm
 SystemRequirements: java
-LazyData: false
 VignetteBuilder: knitr
 Collate:
   'biglda.R'
@@ -41,4 +41,4 @@ Collate:
   'gensim.R'
   'metrics.R'
   'zzz.R'
-RoxygenNote: 7.1.2
+RoxygenNote: 7.2.0

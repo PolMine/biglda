@@ -22,8 +22,9 @@
 #' # Preparations: Create instance list
 #' 
 #' if (!mallet_is_installed()) mallet_install()
-#' 
 #' library(polmineR)
+#' use("polmineR")
+#' 
 #' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
 #' 
 #' instance_list <- as.instance_list(speeches)
@@ -186,6 +187,79 @@ setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
   )
   instance_list
 })
+
+
+#' @param regex A regular expression (length-one `character` vector) used by
+#'   Mallet Java code for splitting `character` vector into tokens.
+#' @param tolower A `logical` value, whether to lowercase tokens (performed)
+#'   by Mallet Java code.
+#' @param stopwords Either a path with a plain text file with stopwords (one per
+#'   line), or a `character` vector.
+#' @examples 
+#' instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker") %>%
+#'   get_token_stream(p_attribute = "word", collapse = " ") %>% 
+#'   unlist() %>%
+#'   as.instance_list()
+#' @rdname as.instance_list
+#' @exportMethod as.instance_list
+#' @author Andreas Blaette, David Mimno
+setMethod("as.instance_list", "character", function(x, regex = "[\\p{L}]+", tolower = FALSE, stopwords = NULL){
+  
+  # This code is adapted from the 'mallet' package maintained by David Mimno,
+  # see: https://github.com/mimno/RMallet/blob/master/mallet/R/mallet.R
+  
+  ids <- if (is.null(names(x))) as.character(1:length(x)) else names(x)
+  
+  pipe_list <- rJava::.jnew("java/util/ArrayList")
+  
+  pipe_list$add(
+    rJava::.jnew(
+      "cc/mallet/pipe/CharSequence2TokenSequence",
+      rJava::J("java/util/regex/Pattern")$compile(regex)
+    )
+  )
+  
+  if (tolower)
+    pipe_list$add(rJava::.jnew("cc/mallet/pipe/TokenSequenceLowercase"))
+  
+  if (!is.null(stopwords)){
+    
+    stopifnot(is.character(stopwords))
+    
+    if (length(stopwords) == 1L){
+      if (file.exists(stopwords)) {
+        stopword_file <- fs::path_norm(stopwords)
+      }
+    } else {
+      stopword_file <- tempfile(fileext = ".txt")
+      writeLines(text = stopwords, stopword_file)
+    }
+
+    pipe_list$add(
+      rJava::.jnew(
+        "cc/mallet/pipe/TokenSequenceRemoveStopwords",
+        rJava::.jnew("java/io/File", stopword_file),
+        "UTF-8", FALSE, FALSE, FALSE
+      )
+    )
+    
+  }
+  
+  pipe_list$add(rJava::.jnew("cc/mallet/pipe/TokenSequence2FeatureSequence"))
+
+  pipe <- rJava::.jnew(
+    "cc/mallet/pipe/SerialPipes",
+    rJava::.jcast(pipe_list, "java/util/Collection")
+  )
+  
+  instance_list <- rJava::.jnew(
+    "cc/mallet/types/InstanceList",
+    rJava::.jcast(pipe, "cc/mallet/pipe/Pipe")
+  )
+  rJava::J("cc/mallet/topics/RTopicModel")$addInstances(instance_list, ids, x)
+  instance_list
+})
+
 
 #' @rdname as.instance_list
 #' @export mallet_instance_list_store

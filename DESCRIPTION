@@ -1,8 +1,8 @@
 Package: biglda
 Type: Package
 Title: Fast LDA topic modelling for big corpora
-Version: 0.0.0.9007
-Date: 2022-07-04
+Version: 0.0.0.9008
+Date: 2023-01-22
 Authors@R: c(
   person("Andreas", "Blaette", role = c("aut", "cre"), email = "andreas.blaette@uni-due.de", comment = c(ORCID = "0000-0001-8970-8010")),
   person("Christoph", "Leonhardt", role = "ctb")
@@ -22,7 +22,8 @@ Imports:
   parallel,
   rJava,
   slam,
-  xml2
+  xml2,
+  cli
 Suggests:
   testthat,
   knitr,

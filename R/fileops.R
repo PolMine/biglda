@@ -1,8 +1,10 @@
 #' Instantiate and load mallet topicmodel
 #' 
-#' @param filename Filename of a mallet topic model (ParallelTopicModel).
-#' @details The function \code{mallet_load_topicmodel} will load a topic model
-#'   created using mallet into memory.
+#' @param filename Either a `character` vector containing the path of a mallet 
+#'   topic model (ParallelTopicModel), tilde expansion will be appied. Or a 
+#'   Java file object.
+#' @details The function `mallet_load_topicmodel()` will load a topic model
+#'   created using mallet into a `BigTopicModel` object.
 #' @rdname paralleltopicmodel
 #' @export mallet_load_topicmodel
 #' @importFrom rJava .jnew .jarray J
@@ -11,8 +13,40 @@
 #' destfile <- tempfile()
 #' pta$write(rJava::.jnew("java/io/File", destfile))
 #' pta_reloaded <- mallet_load_topicmodel(destfile)
-mallet_load_topicmodel <- function(filename){
-  rJava::J("BigTopicModel")$read(rJava::.jnew("java/io/File", filename))
+mallet_load_topicmodel <- function(filename, verbose = TRUE){
+  
+  stopifnot(
+    length(filename) == 1L,
+    is(filename)[1] %in% c("character", "jobjRef"),
+    
+    is.logical(verbose),
+    length(verbose) == 1L
+  )
+  
+  if (verbose){
+    jvm_mem <- J("java/lang/Runtime")$getRuntime()$maxMemory()
+    class(jvm_mem) <- "object_size"
+    jvm_heap_space <- format(jvm_mem, units = "GB")
+    cli::cli_alert_info("JVM heap space: {jvm_heap_space}")
+    
+    filesize <- file.info(filename)$size
+    class(filesize) <- "object_size"
+    filesize_human <- format(filesize, "GB")
+    cli::cli_alert_info("file size: {filesize_human}")
+    
+    if (filesize > jvm_mem){
+      cli_alert_warning("file size exceeds JVM heap space - loading may fail")
+    }
+  }
+  
+  if (!is(filename)[1] == "jobjRef"){
+    filename <- path.expand(filename)
+    if (file.exists(filename)) stop(sprintf("file `%s` not found", filename))
+    jfile <- rJava::.jnew("java/io/File", filename)
+  } else {
+    jfile <- filename
+  }
+  rJava::J("BigTopicModel")$read(jfile)
 }
 
 #' @param n_topics Number of topics (\code{integer} value).

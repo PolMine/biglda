@@ -13,6 +13,14 @@
     .jpackage(pkgname, lib.loc = libname) # Nothing will be added to classpath
     packageStartupMessage("No mallet installation found. Use mallet_install() for installation!")
   }
+  
+  jvm_mem <- J("java/lang/Runtime")$getRuntime()$maxMemory()
+  class(jvm_mem) <- "object_size"
+
+  packageStartupMessage(sprintf(
+    "JVM memory allocated: %s",
+    format(jvm_mem, units = "GB")
+  ))
 
   if ("mallet.jar" %in% basename(rJava::.jclassPath())){
     packageStartupMessage(

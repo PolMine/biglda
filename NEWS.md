@@ -1,6 +1,8 @@
-biglda 0.0.0.9006
+biglda 0.0.0.9007
 =================
-* 
+* `mallet_load_topicmodel()` includes some sanity checks to ensure that loading
+topic model succeeds (report on JVM heap space, file size etc.).
+* When loading the package, a message on the JVM heap space is shown.
 
 biglda 0.0.0.9003
 =================

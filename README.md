@@ -32,10 +32,16 @@ limiting the potential to speed up the computation of a topic model
 using multiple threads. What is more, functionality for full access to
 the computed model is hidden, inhibiting the extraction of the
 information the mallet LDA topic model that is required to map the topic
-model on the LDA\_Gibbs topic model. Note that it is not possible to use
+model on the LDA_Gibbs topic model. Note that it is not possible to use
 the R packages “biglda” and “mallet” in parallel. If “mallet” is loaded,
 it will put its Java Archive on the classpath of the Java Virtual
 Machine (JVM), making the latest version of the `ParallelTopicModel`
 class inaccessible and causing errors that may be difficult to
 understand. Therefore, a warning will be issued when “biglda” may detect
 that the JAR included in the “mallet” package is in the classpath.
+
+## Useful sources
+
+David Minmo, “The Details: Training and Validating Big Models on Big
+Data”:
+<http://journalofdigitalhumanities.org/2-1/the-details-by-david-mimno/>

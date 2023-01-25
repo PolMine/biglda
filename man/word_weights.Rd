@@ -38,7 +38,11 @@ The function \code{mallet_save_word_weights} will write a file that
 \examples{
 \dontrun{
 polmineR::use("polmineR")
-speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- polmineR::as.speeches(
+  "GERMAPARLMINI",
+  s_attribute_name = "speaker",
+  s_attribute_date = "date"
+)
 
 library(rJava)
 .jinit()

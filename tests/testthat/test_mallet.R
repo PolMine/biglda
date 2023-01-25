@@ -5,7 +5,7 @@ library(polmineR)
 test_that(
   "",
   {
-    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
     
     
     instance_list1 <- as.instance_list(speeches, p_attribute = "word")
@@ -37,7 +37,7 @@ test_that(
 test_that(
   "check getDocLengthCounts()-method of BigTopicModel",
   {
-    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
     instance_list <- as.instance_list(speeches)
     lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
     lda$addInstances(instance_list)

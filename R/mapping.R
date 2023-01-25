@@ -29,35 +29,37 @@ setClass(
 #' @importFrom pbapply pblapply
 #' @rdname mapping
 #' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
+#' @importFrom methods is
+#' @importFrom cli cli_progress_step
 as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
   if (!grepl("(RTopicModel|BigTopicModel)", x$getClass()$toString()))
     stop("incoming object needs to be class ParallelTopicModel/RTopicModel/BigTopicModel")
   
-  if (verbose) message("... getting number of documents and number of terms")
+  if (verbose) cli_progress_step("get number of documents and number of terms")
   dimensions <- c(
     x$data$size(), # Number of documents
     x$getAlphabet()$size() # Number of terms
   )
   
-  if (verbose) message("... getting alphabet")
+  if (verbose) cli_progress_step("getting alphabet")
   alphabet <- strsplit(x$getAlphabet()$toString(), "\n")[[1]]
   
-  if (verbose) message("... getting document names")
-  docs <- pblapply(0L:(x$data$size() - 1L), function(i) x$data$get(i)$instance$getName())
+  if (verbose) cli::cli_progress_step("getting document names")
   docs <- x$getDocumentNames()
   
   if (is.null(gamma)){
-    if (verbose) message("... getting topic probabilities (gamma matrix)")
+    if (verbose) cli_progress_step("getting topic probabilities (gamma matrix)")
     gamma <- rJava::.jevalArray(x$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
   }
   
   if (is.null(beta)){
-    message("... getting topic word weights (beta matrix)")
+    if (verbose) cli_progress_step("getting topic word weights (beta matrix)")
     beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
     beta <- log(beta)
   }
   
+  if (verbose) cli_progress_step("instantiate LDA_Gibbs class")
   y <- new(
     "LDA_Gibbs",
     Dim = dimensions,

@@ -9,6 +9,7 @@
       ),
       lib.loc = libname,
     )
+    packageStartupMessage(sprintf("Mallet version: v%s", mallet_get_version()))
   } else {
     .jpackage(pkgname, lib.loc = libname) # Nothing will be added to classpath
     packageStartupMessage("No mallet installation found. Use mallet_install() for installation!")

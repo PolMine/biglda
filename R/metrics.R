@@ -12,7 +12,7 @@ setGeneric("FastCao2009", function(x) standardGeneric("FastCao2009"))
 
 #' @examples 
 #' if (!mallet_is_installed()) mallet_install()
-#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 #' lda <- mallet_load_topicmodel(fname)
 #' lda2 <- as_LDA(lda)
 #' FastCao2009(lda2)
@@ -80,7 +80,7 @@ setMethod("FastDeveaud2014", "matrix", function(x, cl = parallel::detectCores() 
 
 #' @examples
 #' if (!mallet_is_installed()) mallet_install()
-#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 #' lda <- mallet_load_topicmodel(fname)
 #' lda2 <- as_LDA(lda)
 #' FastDeveaud2014(lda2, parallel::detectCores() - 1L)
@@ -117,7 +117,8 @@ setGeneric("FastArun2010", function(x, ...) standardGeneric("FastArun2010"))
 #' if (!mallet_is_installed()) mallet_install()
 #' library(polmineR)
 #' use("polmineR")
-#' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' speeches <- corpus("GERMAPARLMINI") %>%
+#'   as.speeches(s_attribute_name = "speaker", s_attribute_date = "date")
 #' instance_list <- as.instance_list(speeches)
 #' lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 #' lda$addInstances(instance_list)
@@ -151,7 +152,7 @@ setMethod("FastArun2010", "matrix", function(x, gamma, doclengths){
 #' @exportMethod FastArun2010
 #' @examples
 #' if (!mallet_is_installed()) mallet_install()
-#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 #' lda <- mallet_load_topicmodel(fname)
 #' FastArun2010(lda)
 setMethod("FastArun2010", "jobjRef", function(x){

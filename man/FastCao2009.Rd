@@ -25,7 +25,7 @@ substantially faster than ldatuning.
 }
 \examples{
 if (!mallet_is_installed()) mallet_install()
-fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 lda <- mallet_load_topicmodel(fname)
 lda2 <- as_LDA(lda)
 FastCao2009(lda2)

@@ -32,7 +32,8 @@ Fast Implementation of Arun 2014
 if (!mallet_is_installed()) mallet_install()
 library(polmineR)
 use("polmineR")
-speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- corpus("GERMAPARLMINI") \%>\%
+  as.speeches(s_attribute_name = "speaker", s_attribute_date = "date")
 instance_list <- as.instance_list(speeches)
 lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 lda$addInstances(instance_list)
@@ -43,7 +44,7 @@ lda2 <- as_LDA(lda)
 FastArun2010(lda2, doclengths = summary(speeches)[["size"]])
 }
 if (!mallet_is_installed()) mallet_install()
-fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 lda <- mallet_load_topicmodel(fname)
 FastArun2010(lda)
 }

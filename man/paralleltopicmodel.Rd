@@ -6,14 +6,18 @@
 \alias{BigTopicModel}
 \title{Instantiate and load mallet topicmodel}
 \usage{
-mallet_load_topicmodel(filename)
+mallet_load_topicmodel(filename, verbose = TRUE)
 
 ParallelTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 
 BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 }
 \arguments{
-\item{filename}{Filename of a mallet topic model (ParallelTopicModel).}
+\item{filename}{Either a `character` vector containing the path of a mallet 
+topic model (ParallelTopicModel), tilde expansion will be appied. Or a 
+Java file object.}
+
+\item{verbose}{A `logical` value, whether to output progress messages.}
 
 \item{n_topics}{Number of topics (\code{integer} value).}
 
@@ -25,8 +29,8 @@ BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 Instantiate and load mallet topicmodel
 }
 \details{
-The function \code{mallet_load_topicmodel} will load a topic model
-  created using mallet into memory.
+The function `mallet_load_topicmodel()` will load a topic model
+  created using mallet into a `BigTopicModel` object.
 
 The \code{ParallelTopicModel} function will instantial a Java class
   object with the same name from the mallet package, see the
@@ -44,7 +48,13 @@ pta <- ParallelTopicModel()
 destfile <- tempfile()
 pta$write(rJava::.jnew("java/io/File", destfile))
 pta_reloaded <- mallet_load_topicmodel(destfile)
-fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+
+binfile <- system.file(
+  package = "biglda", "extdata", "mallet",
+  "lda_mallet.bin"
+)
+bin <- mallet_load_topicmodel(binfile)
+fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 bigmodel <- mallet_load_topicmodel(fname)
 bigmodel$getDocLengthCounts()
 }

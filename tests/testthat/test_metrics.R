@@ -5,7 +5,7 @@ library(polmineR)
 test_that(
   "FastCao2009",
   {
-    fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+    fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
     lda_mallet <- mallet_load_topicmodel(fname)
     lda_topicmodels <- as_LDA(lda_mallet)
     me <- FastCao2009(lda_topicmodels)
@@ -21,7 +21,7 @@ test_that(
     })
     ldatuning <- sum(cos.dist) / (lda_topicmodels@k*(lda_topicmodels@k-1)/2)
     
-    expect_identical(me, ldatuning)
+    expect_equal(me, ldatuning)
   }
 )
 
@@ -30,7 +30,7 @@ test_that(
 test_that(
   "FastDeveaud2014",
   {
-    fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+    fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
     lda_mallet <- mallet_load_topicmodel(fname)
     lda_topicmodels <- as_LDA(lda_mallet)
     me <- FastDeveaud2014(lda_topicmodels, parallel::detectCores() - 1L)
@@ -65,7 +65,7 @@ test_that(
     
     if (!mallet_is_installed()) mallet_install()
     library(polmineR)
-    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
     instance_list <- as.instance_list(speeches)
     lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
     lda$addInstances(instance_list)

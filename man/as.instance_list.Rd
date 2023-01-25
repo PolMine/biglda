@@ -69,7 +69,11 @@ if (!mallet_is_installed()) mallet_install()
 library(polmineR)
 use("polmineR")
 
-speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- polmineR::as.speeches(
+  "GERMAPARLMINI", 
+  s_attribute_name = "speaker", 
+  s_attribute_date = "date"
+)
 
 instance_list <- as.instance_list(speeches)
 lda <- ParallelTopicModel(25, 5.1, 0.1)
@@ -89,7 +93,7 @@ lda2 <- mallet_load_topicmodel(destfile)
 topicmodels_lda <- as_LDA(lda)
 library(polmineR)
 use("polmineR")
-speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
 speeches_instance_list <- as.instance_list(speeches, p_attribute = "word")
 
 # Pass argument 'subset' to remove stopwords
@@ -99,10 +103,10 @@ speeches_instance_list <- as.instance_list(
   p_attribute = "word",
   subset = {!get(p_attribute) \%in\% bquote(.(terms_to_drop))}
 )
-speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
 id_list <- p_attributes(speeches, p_attribute = "word", decode = FALSE)
 instance_list <- as.instance_list(id_list, corpus = "GERMAPARLMINI", p_attribute = "word")
-instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker") \%>\%
+instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date") \%>\%
   get_token_stream(p_attribute = "word", collapse = " ") \%>\% 
   unlist() \%>\%
   as.instance_list()

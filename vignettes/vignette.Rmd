@@ -55,7 +55,7 @@ The biglda package works seamlessly with the polmineR package. In our example, w
 ```{r}
 library(polmineR)
 use("polmineR")
-speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
 ```
 
 Before training the topic model, mallet requires that the input data are converted into the mallet input format, an InstanceList.

@@ -1,5 +1,6 @@
 #' Instantiate and load mallet topicmodel
 #' 
+#' @param verbose A `logical` value, whether to output progress messages.
 #' @param filename Either a `character` vector containing the path of a mallet 
 #'   topic model (ParallelTopicModel), tilde expansion will be appied. Or a 
 #'   Java file object.
@@ -8,11 +9,18 @@
 #' @rdname paralleltopicmodel
 #' @export mallet_load_topicmodel
 #' @importFrom rJava .jnew .jarray J
+#' @importFrom cli cli_alert_info cli_alert_warning
 #' @examples 
 #' pta <- ParallelTopicModel()
 #' destfile <- tempfile()
 #' pta$write(rJava::.jnew("java/io/File", destfile))
 #' pta_reloaded <- mallet_load_topicmodel(destfile)
+#' 
+#' binfile <- system.file(
+#'   package = "biglda", "extdata", "mallet",
+#'   "lda_mallet.bin"
+#' )
+#' bin <- mallet_load_topicmodel(binfile)
 mallet_load_topicmodel <- function(filename, verbose = TRUE){
   
   stopifnot(
@@ -41,7 +49,7 @@ mallet_load_topicmodel <- function(filename, verbose = TRUE){
   
   if (!is(filename)[1] == "jobjRef"){
     filename <- path.expand(filename)
-    if (file.exists(filename)) stop(sprintf("file `%s` not found", filename))
+    if (!file.exists(filename)) stop(sprintf("file `%s` not found", filename))
     jfile <- rJava::.jnew("java/io/File", filename)
   } else {
     jfile <- filename
@@ -71,7 +79,7 @@ ParallelTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
 #' @rdname paralleltopicmodel
 #' @export BigTopicModel
 #' @examples
-#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet2.bin")
+#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 #' bigmodel <- mallet_load_topicmodel(fname)
 #' bigmodel$getDocLengthCounts()
 BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
@@ -118,7 +126,11 @@ BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
 #' @examples
 #' \dontrun{
 #' polmineR::use("polmineR")
-#' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' speeches <- polmineR::as.speeches(
+#'   "GERMAPARLMINI",
+#'   s_attribute_name = "speaker",
+#'   s_attribute_date = "date"
+#' )
 #' 
 #' library(rJava)
 #' .jinit()

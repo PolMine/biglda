@@ -25,7 +25,11 @@
 #' library(polmineR)
 #' use("polmineR")
 #' 
-#' speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' speeches <- polmineR::as.speeches(
+#'   "GERMAPARLMINI", 
+#'   s_attribute_name = "speaker", 
+#'   s_attribute_date = "date"
+#' )
 #' 
 #' instance_list <- as.instance_list(speeches)
 #' lda <- ParallelTopicModel(25, 5.1, 0.1)
@@ -53,7 +57,7 @@ setGeneric("as.instance_list", function(x, ...) standardGeneric("as.instance_lis
 #' @examples
 #' library(polmineR)
 #' use("polmineR")
-#' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
 #' speeches_instance_list <- as.instance_list(speeches, p_attribute = "word")
 #' 
 #' # Pass argument 'subset' to remove stopwords
@@ -134,7 +138,7 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
 
 
 #' @examples 
-#' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker")
+#' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
 #' id_list <- p_attributes(speeches, p_attribute = "word", decode = FALSE)
 #' instance_list <- as.instance_list(id_list, corpus = "GERMAPARLMINI", p_attribute = "word")
 #' @rdname as.instance_list
@@ -196,7 +200,7 @@ setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
 #' @param stopwords Either a path with a plain text file with stopwords (one per
 #'   line), or a `character` vector.
 #' @examples 
-#' instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker") %>%
+#' instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date") %>%
 #'   get_token_stream(p_attribute = "word", collapse = " ") %>% 
 #'   unlist() %>%
 #'   as.instance_list()

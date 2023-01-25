@@ -27,3 +27,19 @@ The \code{as_LDA()}-function will turn an estimated topic model
   normalized and smoothed, the beta matrix is the logarithmized matrix of
   normalized and smoothed values obtained from the input mallet topic model.
 }
+\examples{
+data_dir <- system.file(package = "biglda", "extdata", "mallet")
+statefile <- file.path(data_dir, "lda_mallet.gz")
+instancefile <- file.path(data_dir, "instance_list.mallet")
+
+il <- rJava::J(
+  "cc/mallet/types/InstanceList")$load(
+    rJava::.jnew("java/io/File", instancefile
+))
+
+btm <- BigTopicModel()
+btm$addInstances(il)
+btm$initializeFromState(rJava::.jnew("java/io/File", statefile))
+
+lda <- as_LDA(btm)
+}

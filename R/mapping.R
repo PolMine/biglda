@@ -31,6 +31,21 @@ setClass(
 #' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
 #' @importFrom methods is
 #' @importFrom cli cli_progress_step
+#' @examples
+#' data_dir <- system.file(package = "biglda", "extdata", "mallet")
+#' statefile <- file.path(data_dir, "lda_mallet.gz")
+#' instancefile <- file.path(data_dir, "instance_list.mallet")
+#' 
+#' il <- rJava::J(
+#'   "cc/mallet/types/InstanceList")$load(
+#'     rJava::.jnew("java/io/File", instancefile
+#' ))
+#' 
+#' btm <- BigTopicModel()
+#' btm$addInstances(il)
+#' btm$initializeFromState(rJava::.jnew("java/io/File", statefile))
+#' 
+#' lda <- as_LDA(btm)
 as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
   if (!grepl("(RTopicModel|BigTopicModel)", x$getClass()$toString()))

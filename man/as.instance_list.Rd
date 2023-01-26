@@ -5,8 +5,8 @@
 \alias{as.instance_list,partition_bundle-method}
 \alias{as.instance_list,list-method}
 \alias{as.instance_list,character-method}
-\alias{mallet_instance_list_store}
-\alias{mallet_instance_list_load}
+\alias{instance_list_save}
+\alias{instance_list_load}
 \title{Interface to mallet topicmodelling.}
 \usage{
 as.instance_list(x, ...)
@@ -17,9 +17,9 @@ as.instance_list(x, ...)
 
 \S4method{as.instance_list}{character}(x, regex = "[\\\\p{L}]+", tolower = FALSE, stopwords = NULL)
 
-mallet_instance_list_store(x, filename = tempfile())
+instance_list_save(x, filename = tempfile())
 
-mallet_instance_list_load(filename)
+instance_list_load(filename)
 }
 \arguments{
 \item{x}{A \code{partition_bundle} object.}
@@ -55,11 +55,10 @@ turn ParallelTopicModel Java object into \code{LDA_Gibbs} object from
 package \code{topicmodels}.
 }
 \details{
-The function \code{mallet_instance_list_load} will load a Java
-  InstanceList object that has been saved to disk (e.g. by using the
-  \code{mallet_instance_list_store} function). The return value is a
-  \code{jobjRef} object. Internally, the function reuses code of the function
-  \code{load.mallet.instances} from the R package \code{mallet}.
+`instance_list_load()` will load a Java InstanceList object that has
+  been saved to disk (e.g. by using the `instance_list_save()` function).
+  The return value is a `jobjRef` object. Internally, the function reuses
+  code of the function `load.mallet.instances()` from the R package `mallet`.
 }
 \examples{
  

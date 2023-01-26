@@ -266,8 +266,8 @@ setMethod("as.instance_list", "character", function(x, regex = "[\\p{L}]+", tolo
 
 
 #' @rdname as.instance_list
-#' @export mallet_instance_list_store
-mallet_instance_list_store <- function(x, filename = tempfile()){
+#' @export instance_list_save
+instance_list_save <- function(x, filename = tempfile()){
   # This snippet is inspired an unexported function save.mallet.instances in 
   # v1.2.0 of the R mallet package which has not yet been released at CRAN.
   # See: https://github.com/mimno/RMallet/blob/master/mallet/R/mallet.R
@@ -276,15 +276,14 @@ mallet_instance_list_store <- function(x, filename = tempfile()){
 }
 
 
-#' @details The function \code{mallet_instance_list_load} will load a Java
-#'   InstanceList object that has been saved to disk (e.g. by using the
-#'   \code{mallet_instance_list_store} function). The return value is a
-#'   \code{jobjRef} object. Internally, the function reuses code of the function
-#'   \code{load.mallet.instances} from the R package \code{mallet}.
+#' @details `instance_list_load()` will load a Java InstanceList object that has
+#'   been saved to disk (e.g. by using the `instance_list_save()` function).
+#'   The return value is a `jobjRef` object. Internally, the function reuses
+#'   code of the function `load.mallet.instances()` from the R package `mallet`.
 #' @rdname as.instance_list
-#' @export mallet_instance_list_load
+#' @export instance_list_load
 #' @importFrom rJava J
-mallet_instance_list_load <- function(filename){
+instance_list_load <- function(filename){
   J("cc.mallet.types.InstanceList")$load(rJava::.jnew("java/io/File", filename))
 }
 

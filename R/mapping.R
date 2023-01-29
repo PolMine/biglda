@@ -30,7 +30,7 @@ setClass(
 #' @rdname mapping
 #' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
 #' @importFrom methods is
-#' @importFrom cli cli_progress_step
+#' @importFrom cli cli_progress_step cli_progress_done
 #' @examples
 #' data_dir <- system.file(package = "biglda", "extdata", "mallet")
 #' statefile <- file.path(data_dir, "lda_mallet.gz")

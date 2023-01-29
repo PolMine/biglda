@@ -23,7 +23,8 @@ Imports:
   rJava,
   slam,
   xml2,
-  cli
+  cli,
+  readr
 Suggests:
   testthat,
   knitr,
@@ -41,5 +42,6 @@ Collate:
   'mapping.R'
   'gensim.R'
   'metrics.R'
+  'svmlight.R'
   'zzz.R'
 RoxygenNote: 7.2.2

@@ -39,6 +39,12 @@ to understand. Therefore, a warning will be issued when "biglda" may detect that
 the JAR included in the "mallet" package is in the classpath.
 
 
+## Related work.
+
+- [mallet](https://CRAN.R-project.org/package=mallet) R package 
+- [dfrtopics](https://github.com/agoldst/dfrtopics)
+
+
 ## Useful sources
 
 David Minmo, "The Details: Training and Validating Big Models on Big Data":

@@ -56,12 +56,17 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
     x$data$size(), # Number of documents
     x$getAlphabet()$size() # Number of terms
   )
+  if (verbose) cli_alert_info("number of docs: {.val {dimensions[1]}} / number of terms: {.val {dimensions[2]}}")
   
   if (verbose) cli_progress_step("getting alphabet")
   alphabet <- strsplit(x$getAlphabet()$toString(), "\n")[[1]]
+  cli_progress_done()
+  if (verbose) cli_alert_info("alphabet length: {.val {length(alphabet)}}")
   
   if (verbose) cli::cli_progress_step("getting document names")
   docs <- x$getDocumentNames()
+  cli_progress_done()
+  if (verbose) cli_alert_info("number of document names: {.val {length(docs)}}")
   
   if (is.null(gamma)){
     if (verbose) cli_progress_step("getting topic probabilities (gamma matrix)")

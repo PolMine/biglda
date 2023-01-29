@@ -1,6 +1,7 @@
 # biglda v0.0.2
 * `mallet_instance_list_store()` renamed to `instance_list_save()` and
 `mallet_instance_list_restore()` renamed to `instance_list_load()`.
+* `as_LDA()` outputs information on number of docs / alphabet size.
 
 # biglda v0.0.1
 

@@ -15,14 +15,15 @@ mallet_get_sparse_word_weights_matrix(x, n_topics = 50L, destfile = tempfile())
 output file.}
 }
 \description{
-The beta matrix reporting word weights for topics can grow extremely large. The
-straight-forward ways to get the matrix can be slow and utterly memory inefficient.
-This function uses the \code{topicXMLReport()}-method of the \code{ParallelTopicModel}
-that is the most memory efficient solution we now at this stage. The trick is that
-weights are only reported for the top N words. Thus you can process the data as
-as sparse matrix, which is the memory efficient solution. See the examples as a proof
-that the result is equivalent indeed to the \code{getTopicWords()}-method. Note 
-however that the matrix is neither normalized nor smoothed nor algorithmized.
+The beta matrix reporting word weights for topics can grow extremely large.
+The straight-forward ways to get the matrix can be slow and utterly memory
+inefficient. This function uses the `topicXMLReport()`-method of the
+`ParallelTopicModel` that is the most memory efficient solution we now at
+this stage. The trick is that weights are only reported for the top N words.
+Thus you can process the data as as sparse matrix, which is the memory
+efficient solution. See the examples as a proof that the result is equivalent
+indeed to the `getTopicWords()`-method. Note however that the matrix is
+neither normalized nor smoothed nor algorithmized.
 }
 \examples{
 \dontrun{

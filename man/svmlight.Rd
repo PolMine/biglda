@@ -19,7 +19,7 @@ svmlight(x, ...)
 \item{verbose}{A `logical` value, whether to output progress messages.}
 }
 \description{
-Export Matrix as svmlight format
+The svmlight data format is an input format used by Mallet.
 }
 \examples{
 library(polmineR)

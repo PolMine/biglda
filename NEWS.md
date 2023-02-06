@@ -3,6 +3,11 @@
 `mallet_instance_list_restore()` renamed to `instance_list_load()`.
 * `as_LDA()` outputs information on number of docs / alphabet size.
 * Method `svmlight()` moved here from package 'polmineR.misc'.
+* Internal, unexported function `.mallet_cmd()` has been removed.
+* `mallet_load_topicmodel()` will abort with an error, if no Mallet installation
+is found.
+* New functions `save_document_topics()` and `load_document_topics()` as more
+memory-efficient way to get gamma matrix from Java to R.
 
 # biglda v0.0.1
 

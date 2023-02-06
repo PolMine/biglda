@@ -52,3 +52,28 @@ test_that(
 )
 
 
+test_that(
+  "result of save_document_topics()/load_document_topics() equal to $getDocumentTopics()",
+  {
+    binfile <- system.file(
+      package = "biglda",
+      "extdata", "mallet", "lda_mallet.bin"
+    )
+    
+    model <- mallet_load_topicmodel(binfile)
+    tmpfile <- save_document_topics(model)
+    doctopics1 <- load_document_topics(tmpfile)
+
+    doctopics2 <- rJava::.jevalArray(
+      model$getDocumentTopics(TRUE, TRUE),
+      simplify = TRUE
+    )
+    dimnames(doctopics2) <- list(
+      model$getDocumentNames(),
+      as.character(1L:ncol(doctopics2))
+    )
+
+    testthat::expect_identical(dim(doctopics1), dim(doctopics2))
+    testthat::expect_equal(as.matrix(doctopics1), doctopics2)
+  }
+)

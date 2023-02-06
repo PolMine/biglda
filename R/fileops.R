@@ -1,114 +1,3 @@
-#' Instantiate and load mallet topicmodel
-#' 
-#' @param verbose A `logical` value, whether to output progress messages.
-#' @param filename Either a `character` vector containing the path of a mallet 
-#'   topic model (ParallelTopicModel), tilde expansion will be appied. Or a 
-#'   Java file object.
-#' @details The function `mallet_load_topicmodel()` will load a topic model
-#'   created using mallet into a `BigTopicModel` object.
-#' @rdname paralleltopicmodel
-#' @export mallet_load_topicmodel
-#' @importFrom rJava .jnew .jarray J
-#' @importFrom cli cli_alert_info cli_alert_warning
-#' @examples 
-#' pta <- ParallelTopicModel()
-#' destfile <- tempfile()
-#' pta$write(rJava::.jnew("java/io/File", destfile))
-#' pta_reloaded <- mallet_load_topicmodel(destfile)
-#' 
-#' binfile <- system.file(
-#'   package = "biglda", "extdata", "mallet",
-#'   "lda_mallet.bin"
-#' )
-#' bin <- mallet_load_topicmodel(binfile)
-mallet_load_topicmodel <- function(filename, verbose = TRUE){
-  
-  stopifnot(
-    length(filename) == 1L,
-    is(filename)[1] %in% c("character", "jobjRef"),
-    
-    is.logical(verbose),
-    length(verbose) == 1L
-  )
-  
-  if (verbose){
-    jvm_mem <- J("java/lang/Runtime")$getRuntime()$maxMemory()
-    class(jvm_mem) <- "object_size"
-    jvm_heap_space <- format(jvm_mem, units = "GB")
-    cli::cli_alert_info("JVM heap space: {jvm_heap_space}")
-    
-    filesize <- file.info(filename)$size
-    class(filesize) <- "object_size"
-    filesize_human <- format(filesize, "GB")
-    cli::cli_alert_info("file size: {filesize_human}")
-    
-    if (filesize > jvm_mem){
-      cli_alert_warning("file size exceeds JVM heap space - loading may fail")
-    }
-  }
-  
-  if (!is(filename)[1] == "jobjRef"){
-    filename <- path.expand(filename)
-    if (!file.exists(filename)) stop(sprintf("file `%s` not found", filename))
-    jfile <- rJava::.jnew("java/io/File", filename)
-  } else {
-    jfile <- filename
-  }
-  rJava::J("BigTopicModel")$read(jfile)
-}
-
-#' @param n_topics Number of topics (\code{integer} value).
-#' @param alpha_sum Passed into constructor.
-#' @param beta Passet into constructor.
-#' @details The \code{ParallelTopicModel} function will instantial a Java class
-#'   object with the same name from the mallet package, see the
-#'   \href{http://mallet.cs.umass.edu/api/cc/mallet/topics/ParallelTopicModel.html}{mallet
-#'   documentation} of the class.
-#' @rdname paralleltopicmodel
-#' @export ParallelTopicModel
-ParallelTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
-  rJava::.jnew("cc/mallet/topics/RTopicModel", as.numeric(n_topics), alpha_sum, beta)
-}
-
-
-#' @details The \code{BigTopicModel} function will instantiate a Java class
-#'   object \code{BigTopicModel} which inherits from the RTopicModel and the
-#'   ParallelTopicModel class. It adds a method $getDocLengthCounts() to the
-#'   the classes it inherits from to provide a fast access to document 
-#'   lengths.
-#' @rdname paralleltopicmodel
-#' @export BigTopicModel
-#' @examples
-#' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
-#' bigmodel <- mallet_load_topicmodel(fname)
-#' bigmodel$getDocLengthCounts()
-BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
-  rJava::.jnew("BigTopicModel", as.numeric(n_topics), alpha_sum, beta)
-}
-
-
-
-.mallet_cmd <- function(mallet_bin_dir, sourcefile, destfile, topwords = 50, topics = 50, iterations = 2000, threads = NULL){
-  stopifnot(
-    is.numeric(topics), topics > 2,
-    is.numeric(iterations), iterations > 1,
-    is.numeric(topwords), topwords > 2
-    #    , is.numeric(threads), threads > 0
-  )
-  
-  cmd <- c(
-    file.path(mallet_bin_dir, "mallet"), "train-topics",
-    "--input", sourcefile,
-    "--num-topics", topics,
-    "--num-iterations", iterations,
-    "--output-model", destfile,
-    if (is.null(threads)) c() else c("--num-threads", threads)
-  )
-  paste(cmd, collapse = " ")
-}
-
-
-
 #' Process large topic word weights matrices
 #' 
 #' The word weights matrix (weights of words for topics) can get big dataish when 
@@ -197,14 +86,15 @@ mallet_save_word_weights <- function(model, destfile = tempfile()){
 
 #' Get sparse beta matrix
 #' 
-#' The beta matrix reporting word weights for topics can grow extremely large. The
-#' straight-forward ways to get the matrix can be slow and utterly memory inefficient.
-#' This function uses the \code{topicXMLReport()}-method of the \code{ParallelTopicModel}
-#' that is the most memory efficient solution we now at this stage. The trick is that
-#' weights are only reported for the top N words. Thus you can process the data as
-#' as sparse matrix, which is the memory efficient solution. See the examples as a proof
-#' that the result is equivalent indeed to the \code{getTopicWords()}-method. Note 
-#' however that the matrix is neither normalized nor smoothed nor algorithmized.
+#' The beta matrix reporting word weights for topics can grow extremely large.
+#' The straight-forward ways to get the matrix can be slow and utterly memory
+#' inefficient. This function uses the `topicXMLReport()`-method of the
+#' `ParallelTopicModel` that is the most memory efficient solution we now at
+#' this stage. The trick is that weights are only reported for the top N words.
+#' Thus you can process the data as as sparse matrix, which is the memory
+#' efficient solution. See the examples as a proof that the result is equivalent
+#' indeed to the `getTopicWords()`-method. Note however that the matrix is
+#' neither normalized nor smoothed nor algorithmized.
 #' 
 #' @param x A \code{ParallelTopicModel} class object
 #' @param n_topics A length-one \code{integer} vector, the number of topics.
@@ -281,3 +171,83 @@ mallet_get_sparse_word_weights_matrix <- function(x, n_topics = 50L, destfile = 
 }
 
 
+#' Process large Document-Topics-Matrices
+#' 
+#' @param model A rJava object `ParallelTopicModel` or inheriting from it.
+#' @param destfile Path to a file for temporarily saving data on documents and
+#'   topics.
+#' @param filename Path to file with data exported from Java.
+#' @examples
+#' m <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
+#'   mallet_load_topicmodel()
+#' fname <- save_document_topics(m)
+#' y <- load_document_topics(fname)
+#' dim(y)
+#' 
+#' y2 <- rJava::.jevalArray(m$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
+#' dimnames(y2) <- list(m$getDocumentNames(), as.character(1L:ncol(y2)))
+#' 
+#' testthat::expect_identical(dim(y), dim(y2))
+#' y2["Wolfgang Wieland_2009-11-11_1",]
+#' as.matrix(y)["Wolfgang Wieland_2009-11-11_1",]
+#' testthat::expect_equal(as.matrix(y), y2)
+#' @rdname documenttopics
+#' @export
+save_document_topics <- function(model, destfile = tempfile()){
+  jfile <- rJava::.jnew("java/io/File", destfile)
+  model$printDocumentTopics(jfile)
+  destfile 
+}
+
+
+#' @importFrom readr read_tsv
+#' @importFrom data.table fread melt setnames setDF
+#' @rdname documenttopics
+#' @export
+load_document_topics <- function(filename){
+  
+  stopifnot (is.character(filename))
+  filename <- path.expand(filename)
+  
+  first_data_line <- readLines(filename, n = 2L)[2]
+  n_topics <- length(strsplit(first_data_line, "\t")[[1]]) / 2 - 1L
+  
+  # we use data.table::fread() rather than readr::read_tsv() because of 
+  # data.table.melt()
+  datacols <- unlist(
+    lapply(
+      1L:n_topics,
+      function(i) paste0(c("topic", "weight"), i))
+  )
+  doctopics <- data.table::fread(
+    file = filename,
+    skip = 1L,
+    sep = "\t",
+    col.names = c("doc_id", "doc_name", datacols, "dummy"),
+    colClasses = c("integer", "character", rep(c("integer", "numeric"), times = n_topics), "integer")
+  )
+  doctopics[, "dummy" := NULL] # no idea where this dummy column comes from
+  docnames <- doctopics[["doc_name"]] # keep for late use
+  doctopics[, "doc_name" := NULL]
+  
+  retval <- melt(
+    doctopics,
+    measure.vars = list(
+      paste0("topic", 1L:n_topics),
+      paste0("weight", 1L:n_topics)
+    )
+  )
+  retval[, "variable" := NULL]
+  retval[, "value1" := retval$value1 + 1L]
+  retval[, "doc_id" := retval$doc_id + 1L]
+  setnames(retval, old = c("doc_id", "value1", "value2"), new = c("i", "j", "v"))
+  setorderv(retval, cols = c("j", "v"), order = c(1L, -1L))
+  setDF(retval)
+  class(retval) <- "list"
+  
+  retval[["nrow"]] <- nrow(doctopics)
+  retval[["ncol"]] <- max(retval[["j"]])
+  retval[["dimnames"]] <- list(docnames, as.character(1L:retval[["ncol"]]))
+  class(retval) <- "simple_triplet_matrix"
+  retval
+}

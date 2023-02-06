@@ -77,3 +77,33 @@ test_that(
     testthat::expect_equal(doctopics1, doctopics2)
   }
 )
+
+test_that(
+  "result of save_document_topics()/load_document_topics() equal to $getDocumentTopics()",
+  {
+    bin <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
+    model <- mallet_load_topicmodel(bin)
+
+    # This is an approach that uses a (temporary) file written
+    # to disk. The advantage is that it is a sparse matrix that is
+    # passed
+    fname <- save_word_weights(model)
+    beta_1 <- load_word_weights(fname)
+
+    # This is the call used internally by 'as_LDA()'. The difference
+    # is that the arguments of the $getTopicWords()-method are FALSE
+    # (argument 'normalized') and TRUE (argument 'smoothed')
+    beta_2 <- rJava::.jevalArray(model$getTopicWords(FALSE, TRUE), simplify = TRUE)
+    alphabet <- strsplit(model$getAlphabet()$toString(), "\n")[[1]]
+    colnames(beta_2) <- alphabet
+    rownames(beta_2) <- as.character(1:nrow(beta_2))
+    
+    # Demonstrate the equivalence of the two approaches
+    identical(rownames(beta_1), rownames(beta_2))
+    identical(colnames(beta_1), colnames(beta_2))
+    identical(apply(beta_1, 1, order), apply(beta_2, 1, order))
+    testthat::expect_equal(beta_1, beta_2)
+  }
+)
+
+

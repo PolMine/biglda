@@ -2,67 +2,54 @@
 #' 
 #' The word weights matrix (weights of words for topics) can get big dataish when 
 #' there is a large number of topics and a substantially sized vocabulary. The 
-#' \code{mallet_save_word_weights} and the \code{mallet_load_word_weights} are 
+#' \code{save_word_weights} and the \code{load_word_weights} are 
 #' tools to handle this scenario by writing out the data to disk as a sparse matrix, 
 #' and loading this into the R session. In order to be able to use the function,
 #' the \code{ParallelTopicModel} class needs to be used, the \code{RTopicModel} will
 #' not do it.
 #' 
 #' @param filename A file with word weights.
-#' @export mallet_load_word_weights
+#' @param verbose A `logical` value, whether to output progress messages.
+#' @export load_word_weights
 #' @importFrom slam simple_triplet_matrix
 #' @rdname word_weights
 #' @examples
-#' \dontrun{
-#' polmineR::use("polmineR")
-#' speeches <- polmineR::as.speeches(
-#'   "GERMAPARLMINI",
-#'   s_attribute_name = "speaker",
-#'   s_attribute_date = "date"
-#' )
-#' 
-#' library(rJava)
-#' .jinit()
-#' .jaddClassPath("/opt/mallet-2.0.8/class") # after .jinit(), not before
-#' .jaddClassPath("/opt/mallet-2.0.8/lib/mallet-deps.jar")
-#' 
-#' 
-#' # This is the call used internally by 'as_LDA()'. The difference
-#' # is that the arguments of the $getTopicWords()-method are FALSE 
-#' # (argument 'normalized') and TRUE (argument 'smoothed')
-#' beta_1 <- rJava::.jevalArray(lda$getTopicWords(FALSE, TRUE), simplify = TRUE) 
-#' alphabet <- strsplit(lda$getAlphabet()$toString(), "\n")[[1]]
-#' colnames(beta_1) <- alphabet
-#' beta_1 <- beta_1[, alphabet[order(alphabet)] ]
-#' rownames(beta_1) <- as.character(1:nrow(beta_1))
-#' 
-#' # This is an approach that uses a (temporary) file written
-#' # to disk. The advantage is that it is a sparse matrix that is
-#' # passed
-#' fname <- mallet_save_word_weights(lda)
-#' word_weights <- mallet_load_word_weights(fname)
-#' beta_2 <- t(as.matrix(word_weights))
-#' 
-#' # Demonstrate the equivalence of the two approaches
-#' identical(rownames(beta_1), rownames(beta_2))
-#' identical(colnames(beta_1), colnames(beta_2))
-#' identical(apply(beta_1, 1, order), apply(beta_2, 1, order))
-#' identical(beta_1, beta_2)
-#' }
-mallet_load_word_weights <- function(filename){
-  word_weights_raw <- read.table(filename, sep = "\t")
-  simple_triplet_matrix(
-    i = as.integer(word_weights_raw[,2]),
-    j = word_weights_raw[,1] + 1L,
-    v = word_weights_raw[,3],
-    dimnames = list(
-      levels(word_weights_raw[,2]),
-      as.character(1L:(max(word_weights_raw[,1]) + 1L))
-    )
+#' bin <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
+#' lda <- mallet_load_topicmodel(bin)
+#' fname <- save_word_weights(lda)
+#' word_weights <- load_word_weights(fname)
+#' @importFrom data.table fread
+load_word_weights <- function(filename, verbose = TRUE){
+  if (!file.exists(filename)) stop("file does not exist")
+  
+  if (verbose) cli_progress_step("read data from disk")
+  dt <- data.table::fread(
+    file = filename,
+    sep = "\t", quote = "", 
+    showProgress = verbose
+  )
+  if (verbose) cli_progress_done()
+  
+  vocabsize <- nrow(dt[dt[["V1"]] == 0])
+  vocab <- dt[["V2"]][1:vocabsize]
+  if (verbose) cli_alert_info("vocabulary size: {.val {vocabsize}}")
+  n_topics <- max(dt[["V1"]]) + 1L
+  if (verbose) cli_alert_info("number of topics: {.val {n_topics}}")
+  
+  dt[, "V1" := NULL][, "V2" := NULL]
+  gc()
+  
+  if (verbose) cli_progress_step("create matrix")
+  matrix(
+    data = dt[["V3"]],
+    nrow = n_topics,
+    ncol = vocabsize,
+    byrow = TRUE,
+    dimnames = list(as.character(1L:n_topics), vocab)
   )
 }
 
-#' @details The function \code{mallet_save_word_weights} will write a file that
+#' @details The function \code{save_word_weights} will write a file that
 #'   can be handled as a sparse matrix to a file (argument \code{destfile}).
 #'   Internally, it uses the method \code{printTopicWordWeights} of the
 #'   \code{ParallelTopicModel} class. The (parsed) content of the file is
@@ -73,8 +60,8 @@ mallet_load_word_weights <- function(filename){
 #' @param destfile Length-one \code{character} vector, the filename of the
 #'   output file.
 #' @rdname word_weights
-#' @export mallet_save_word_weights
-mallet_save_word_weights <- function(model, destfile = tempfile()){
+#' @export save_word_weights
+save_word_weights <- function(model, destfile = tempfile()){
   file <- rJava::.jnew("java/io/File", destfile)
   file_writer <- rJava::.jnew("java/io/FileWriter", file)
   print_writer <- rJava::new(rJava::J("java/io/PrintWriter"), file_writer)

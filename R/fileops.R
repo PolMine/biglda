@@ -1,13 +1,12 @@
 #' Process large topic word weights matrices
 #' 
-#' The word weights matrix (weights of words for topics) can get big dataish when 
-#' there is a large number of topics and a substantially sized vocabulary. The 
-#' \code{save_word_weights} and the \code{load_word_weights} are 
-#' tools to handle this scenario by writing out the data to disk as a sparse matrix, 
-#' and loading this into the R session. In order to be able to use the function,
-#' the \code{ParallelTopicModel} class needs to be used, the \code{RTopicModel} will
-#' not do it.
-#' 
+#' The word weights matrix (weights of words for topics) can get big dataish
+#' when there is a large number of topics and a substantially sized vocabulary.
+#' The `save_word_weights()` and the `load_word_weights()` are tools to handle
+#' this scenario by writing out the data to disk as a sparse matrix, and loading
+#' this into the R session. In order to be able to use the function, the
+#' `ParallelTopicModel` class needs to be used, the `RTopicModel` will not do
+#' it.
 #' @param filename A file with word weights.
 #' @param verbose A `logical` value, whether to output progress messages.
 #' @export load_word_weights
@@ -49,24 +48,32 @@ load_word_weights <- function(filename, verbose = TRUE){
   )
 }
 
-#' @details The function \code{save_word_weights} will write a file that
-#'   can be handled as a sparse matrix to a file (argument \code{destfile}).
-#'   Internally, it uses the method \code{printTopicWordWeights} of the
-#'   \code{ParallelTopicModel} class. The (parsed) content of the file is
-#'   equivalent to matrix that can be obtained directly the class using the
-#'   \code{getTopicWords(FALSE, TRUE)} method. Thus, values are not normalised,
-#'   but smoothed (= coefficient beta is added to values).
-#' @param model A topic model (class \code{jobjRef}).
-#' @param destfile Length-one \code{character} vector, the filename of the
+#' @details The function `save_word_weights()` will write a file that can be
+#'   handled as a sparse matrix to a file (argument `destfile`). Internally, it
+#'   uses the method `$printTopicWordWeights()` of the `ParallelTopicModel`
+#'   class. The (parsed) content of the file is equivalent to matrix that can be
+#'   obtained directly the class using the `$getTopicWords(FALSE, TRUE)` method.
+#'   Thus, values are not normalised, but smoothed (= coefficient beta is added
+#'   to values).
+#' @param model A topic model (class `jobjRef`).
+#' @param destfile Length-one `character` vector, the filename of the
 #'   output file.
 #' @rdname word_weights
 #' @export save_word_weights
-save_word_weights <- function(model, destfile = tempfile()){
+save_word_weights <- function(model, destfile = tempfile(), verbose = TRUE){
   file <- rJava::.jnew("java/io/File", destfile)
   file_writer <- rJava::.jnew("java/io/FileWriter", file)
   print_writer <- rJava::new(rJava::J("java/io/PrintWriter"), file_writer)
   model$printTopicWordWeights(print_writer)
   print_writer$close()
+  
+  if (verbose){
+    filesize <- file.info(destfile)$size
+    class(filesize) <- "object_size"
+    cli_alert_info("size of exported file: {.blue {format(filesize, 'Gb')}}")
+  }
+  
+  
   destfile 
 }
 

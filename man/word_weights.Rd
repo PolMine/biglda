@@ -7,35 +7,35 @@
 \usage{
 load_word_weights(filename, verbose = TRUE)
 
-save_word_weights(model, destfile = tempfile())
+save_word_weights(model, destfile = tempfile(), verbose = TRUE)
 }
 \arguments{
 \item{filename}{A file with word weights.}
 
 \item{verbose}{A `logical` value, whether to output progress messages.}
 
-\item{model}{A topic model (class \code{jobjRef}).}
+\item{model}{A topic model (class `jobjRef`).}
 
-\item{destfile}{Length-one \code{character} vector, the filename of the
+\item{destfile}{Length-one `character` vector, the filename of the
 output file.}
 }
 \description{
-The word weights matrix (weights of words for topics) can get big dataish when 
-there is a large number of topics and a substantially sized vocabulary. The 
-\code{save_word_weights} and the \code{load_word_weights} are 
-tools to handle this scenario by writing out the data to disk as a sparse matrix, 
-and loading this into the R session. In order to be able to use the function,
-the \code{ParallelTopicModel} class needs to be used, the \code{RTopicModel} will
-not do it.
+The word weights matrix (weights of words for topics) can get big dataish
+when there is a large number of topics and a substantially sized vocabulary.
+The `save_word_weights()` and the `load_word_weights()` are tools to handle
+this scenario by writing out the data to disk as a sparse matrix, and loading
+this into the R session. In order to be able to use the function, the
+`ParallelTopicModel` class needs to be used, the `RTopicModel` will not do
+it.
 }
 \details{
-The function \code{save_word_weights} will write a file that
-  can be handled as a sparse matrix to a file (argument \code{destfile}).
-  Internally, it uses the method \code{printTopicWordWeights} of the
-  \code{ParallelTopicModel} class. The (parsed) content of the file is
-  equivalent to matrix that can be obtained directly the class using the
-  \code{getTopicWords(FALSE, TRUE)} method. Thus, values are not normalised,
-  but smoothed (= coefficient beta is added to values).
+The function `save_word_weights()` will write a file that can be
+  handled as a sparse matrix to a file (argument `destfile`). Internally, it
+  uses the method `$printTopicWordWeights()` of the `ParallelTopicModel`
+  class. The (parsed) content of the file is equivalent to matrix that can be
+  obtained directly the class using the `$getTopicWords(FALSE, TRUE)` method.
+  Thus, values are not normalised, but smoothed (= coefficient beta is added
+  to values).
 }
 \examples{
 bin <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")

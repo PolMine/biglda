@@ -7,7 +7,7 @@
 \usage{
 save_document_topics(model, destfile = tempfile())
 
-load_document_topics(filename)
+load_document_topics(filename, verbose = TRUE)
 }
 \arguments{
 \item{model}{A rJava object `ParallelTopicModel` or inheriting from it.}
@@ -16,6 +16,8 @@ load_document_topics(filename)
 topics.}
 
 \item{filename}{Path to file with data exported from Java.}
+
+\item{verbose}{A `logical` value, whether to show progress messages.}
 }
 \description{
 Process large Document-Topics-Matrices

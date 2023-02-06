@@ -200,17 +200,23 @@ save_document_topics <- function(model, destfile = tempfile()){
 }
 
 
+#' @param verbose A `logical` value, whether to show progress messages.
 #' @importFrom readr read_tsv
 #' @importFrom data.table fread melt setnames setDF
 #' @rdname documenttopics
 #' @export
-load_document_topics <- function(filename){
+load_document_topics <- function(filename, verbose = TRUE){
   
   stopifnot (is.character(filename))
   filename <- path.expand(filename)
+  filesize <- file.info(filename)$size
+  class(filesize) <- "object_size"
+  if (verbose) cli_alert_info("Size of data file: {.blue {format(filesize, 'Gb')}}")
   
   first_data_line <- readLines(filename, n = 2L)[2]
   n_topics <- length(strsplit(first_data_line, "\t")[[1]]) / 2 - 1L
+  if (TRUE) cli_alert_info("Number of topics: {.val {n_topics}}")
+  
   
   # we use data.table::fread() rather than readr::read_tsv() because of 
   # data.table.melt()
@@ -219,35 +225,44 @@ load_document_topics <- function(filename){
       1L:n_topics,
       function(i) paste0(c("topic", "weight"), i))
   )
+  
+  if (verbose) cli_alert_info("read in data")
   doctopics <- data.table::fread(
     file = filename,
     skip = 1L,
     sep = "\t",
     col.names = c("doc_id", "doc_name", datacols, "dummy"),
-    colClasses = c("integer", "character", rep(c("integer", "numeric"), times = n_topics), "integer")
+    colClasses = c("integer", "character", rep(c("integer", "numeric"), times = n_topics), "integer"),
+    showProgress = verbose
   )
   doctopics[, "dummy" := NULL] # no idea where this dummy column comes from
   docnames <- doctopics[["doc_name"]] # keep for late use
   doctopics[, "doc_name" := NULL]
+  gc()
   
-  retval <- melt(
+  if (verbose) cli_progress_step("melt data.table")
+  molten <- melt(
     doctopics,
     measure.vars = list(
       paste0("topic", 1L:n_topics),
       paste0("weight", 1L:n_topics)
     )
   )
-  retval[, "variable" := NULL]
-  retval[, "value1" := retval$value1 + 1L]
-  retval[, "doc_id" := retval$doc_id + 1L]
-  setnames(retval, old = c("doc_id", "value1", "value2"), new = c("i", "j", "v"))
-  setorderv(retval, cols = c("j", "v"), order = c(1L, -1L))
-  setDF(retval)
-  class(retval) <- "list"
+  rm(doctopics)
+  molten[, "variable" := NULL]
+  gc()
   
-  retval[["nrow"]] <- nrow(doctopics)
-  retval[["ncol"]] <- max(retval[["j"]])
-  retval[["dimnames"]] <- list(docnames, as.character(1L:retval[["ncol"]]))
-  class(retval) <- "simple_triplet_matrix"
-  retval
+  if (verbose) cli_progress_step("order data")
+  setorderv(molten, cols = c("doc_id", "value1"))
+  molten[, "doc_id" := NULL][, "value1" := NULL]
+  gc()
+  
+  if (verbose) cli_progress_step("convert to matrix")
+  matrix(
+    data = molten[["value2"]],
+    nrow = length(docnames),
+    ncol = n_topics,
+    byrow = TRUE,
+    dimnames = list(docnames, as.character(1L:n_topics))
+  )
 }

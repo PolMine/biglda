@@ -74,6 +74,6 @@ test_that(
     )
 
     testthat::expect_identical(dim(doctopics1), dim(doctopics2))
-    testthat::expect_equal(as.matrix(doctopics1), doctopics2)
+    testthat::expect_equal(doctopics1, doctopics2)
   }
 )

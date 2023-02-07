@@ -75,4 +75,11 @@ mallet_set_classpath <- function(){
   .jaddClassPath(mallet_class_dir)
 }
 
+#' Get size of file and return formatted value
+#' @param x Path to a file
+get_formatted_filesize <- function(x){
+  filesize <- file.info(x)$size
+  class(filesize) <- "object_size"
+  format(filesize, "GB")
+}
 

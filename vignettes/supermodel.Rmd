@@ -5,7 +5,7 @@ date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 bibliography: topicmodelling.bibtex
 vignette: >
-  %\VignetteIndexEntry{Supermodel}
+  %\VignetteIndexEntry{Searching the Super Topic Model}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 

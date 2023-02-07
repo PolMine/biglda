@@ -6,7 +6,10 @@
 \alias{mallet_is_installed}
 \title{Functions to manage mallet installation}
 \usage{
-mallet_install(url = "http://mallet.cs.umass.edu/dist/mallet-2.0.8.tar.gz")
+mallet_install(
+  url = "http://mallet.cs.umass.edu/dist/mallet-2.0.8.tar.gz",
+  verbose = TRUE
+)
 
 mallet_get_version()
 
@@ -14,19 +17,20 @@ mallet_is_installed()
 }
 \arguments{
 \item{url}{url of mallet}
+
+\item{verbose}{A `logical` value, whether to output progress messages.}
 }
 \description{
 Functions to manage mallet installation
 }
 \details{
-The \code{mallet_install} function will downlpad the mallet Java package
+`mallet_install()` will download the mallet Java package
   and put it into the java directory of the biglda R package.
 
-The \code{mallet_get_version} function will return a
-  \code{numeric_version} object of mallet is installed, or \code{NULL} if
-  mallet is not available.
+`mallet_get_version()` will return a `numeric_version` object of
+  mallet is installed, or `NULL` if mallet is not available.
 
-The \code{mallet_is_installed} utility will return a logical value
+`mallet_is_installed()` utility will return a `logical` value
   whether mallet is installed or not.
 }
 \examples{

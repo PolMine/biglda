@@ -12,7 +12,7 @@ speeches <- polmineR::as.speeches(
 
 instance_list <- as.instance_list(speeches)
 instance_list_file <- path.expand("~/Lab/github/biglda/inst/extdata/mallet/instance_list.mallet")
-instance_list$save(.jnew("java/io/file", instance_list_file))
+instance_list$save(rJava::.jnew("java/io/File", instance_list_file))
 
 lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 lda$addInstances(instance_list)
@@ -25,6 +25,3 @@ statefile <- path.expand("~/Lab/github/biglda/inst/extdata/mallet/lda_mallet.gz"
 
 lda$printState(rJava::.jnew("java/io/File", statefile))
 
-
-lda2 <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
-lda2$initializeFromState(rJava::.jnew("java/io/File", statefile))

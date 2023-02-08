@@ -1,18 +1,17 @@
 #' @importFrom rJava .jpackage
 .onAttach <- function(libname, pkgname){
   if (mallet_is_installed()){
-    .jpackage(
-      pkgname, jars = "mallet-2.0.8/lib/mallet-deps.jar",
-      morePaths = c(
-        system.file(package = pkgname, lib.loc = libname, "java"),
-        system.file(package = pkgname, lib.loc = libname, "java", "mallet-2.0.8", "class")
-      ),
-      lib.loc = libname,
-    )
+    mallet_dir <- get_mallet_dir()
+    mallet_deps_jar <- file.path(mallet_dir, "lib", "mallet-deps.jar")
+    mallet_class_dir <- file.path(mallet_dir, "class")
+    .jpackage(pkgname, lib.loc = libname,)
+    .jaddClassPath(path = c(mallet_deps_jar, mallet_class_dir))
     packageStartupMessage(sprintf("Mallet version: v%s", mallet_get_version()))
   } else {
     .jpackage(pkgname, lib.loc = libname) # Nothing will be added to classpath
-    packageStartupMessage("No mallet installation found. Use mallet_install() for installation!")
+    packageStartupMessage(
+      "No mallet installation found. Use mallet_install() for installation!"
+    )
   }
   
   jvm_mem <- J("java/lang/Runtime")$getRuntime()$maxMemory()

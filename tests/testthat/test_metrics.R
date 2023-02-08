@@ -68,7 +68,12 @@ test_that(
     
     if (!mallet_is_installed()) mallet_install()
     library(polmineR)
-    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
+    speeches <- polmineR::as.speeches(
+      "GERMAPARLMINI",
+      s_attribute_name = "speaker",
+      s_attribute_date = "date",
+      progress = FALSE
+    )
     instance_list <- as.instance_list(speeches)
     lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
     lda$addInstances(instance_list)
@@ -99,6 +104,14 @@ test_that(
     reference <- Arun2010(model = lda2, as.DocumentTermMatrix(speeches, p_attribute = "word"))
     
     expect_identical(myself, reference)
+    
+    rcpp <- BigArun2010(
+      beta = lda2@beta,
+      gamma = lda2@gamma,
+      doclengths = summary(speeches)[["size"]]
+    )
+    
+    expect_equal(myself, rcpp)
   }
 )
 

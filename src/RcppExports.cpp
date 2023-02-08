@@ -22,9 +22,23 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// BigArun2010
+double BigArun2010(const arma::mat& beta, const arma::mat& gamma, arma::vec doclengths);
+RcppExport SEXP _biglda_BigArun2010(SEXP betaSEXP, SEXP gammaSEXP, SEXP doclengthsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type beta(betaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type gamma(gammaSEXP);
+    Rcpp::traits::input_parameter< arma::vec >::type doclengths(doclengthsSEXP);
+    rcpp_result_gen = Rcpp::wrap(BigArun2010(beta, gamma, doclengths));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_biglda_BigCao2009", (DL_FUNC) &_biglda_BigCao2009, 1},
+    {"_biglda_BigArun2010", (DL_FUNC) &_biglda_BigArun2010, 3},
     {NULL, NULL, 0}
 };
 

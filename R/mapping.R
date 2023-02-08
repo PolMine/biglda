@@ -1,15 +1,8 @@
+#' LDA Mallet Class.
+#' 
 #' @importClassesFrom topicmodels TopicModel LDA LDA_Gibbscontrol
-#' @noRd
-setClass(
-  "LDA_Gibbs",
-  representation(
-    seedwords = "ANY",
-    z = "integer"
-  ),
-  contains = "LDA",
-  prototype(control = new("LDA_Gibbscontrol")
-  )
-)
+setClass("LDA_Mallet", contains = "LDA")
+
 
 
 #' Convert mallet LDA to topicanalysis class
@@ -28,7 +21,6 @@ setClass(
 #' @export as_LDA
 #' @importFrom pbapply pblapply
 #' @rdname mapping
-#' @importClassesFrom topicmodels LDA LDA_Gibbscontrol
 #' @importFrom methods is
 #' @importFrom cli cli_progress_step cli_progress_done
 #' @examples
@@ -81,7 +73,7 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
   if (verbose) cli_progress_step("instantiate LDA_Gibbs class")
   y <- new(
-    "LDA_Gibbs",
+    "LDA_Mallet",
     Dim = dimensions,
     k = x$getNumTopics(),
     terms = alphabet,

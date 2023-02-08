@@ -22,6 +22,9 @@ test_that(
     ldatuning <- sum(cos.dist) / (lda_topicmodels@k*(lda_topicmodels@k-1)/2)
     
     expect_equal(me, ldatuning)
+    
+    cpp <- BigCao2009(lda_topicmodels@beta)
+    expect_equal(cpp, me)
   }
 )
 
@@ -55,6 +58,8 @@ test_that(
       FastDeveaud2014(lda_topicmodels, cl = parallel::detectCores() - 1L)
     )
     
+    big <- BigDeveaud2014(lda_topicmodels@beta)
+    expect_equal(me, big)
   }
 )
 
@@ -65,7 +70,12 @@ test_that(
     
     if (!mallet_is_installed()) mallet_install()
     library(polmineR)
-    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
+    speeches <- polmineR::as.speeches(
+      "GERMAPARLMINI",
+      s_attribute_name = "speaker",
+      s_attribute_date = "date",
+      progress = FALSE
+    )
     instance_list <- as.instance_list(speeches)
     lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
     lda$addInstances(instance_list)
@@ -96,6 +106,14 @@ test_that(
     reference <- Arun2010(model = lda2, as.DocumentTermMatrix(speeches, p_attribute = "word"))
     
     expect_identical(myself, reference)
+    
+    rcpp <- BigArun2010(
+      beta = lda2@beta,
+      gamma = lda2@gamma,
+      doclengths = summary(speeches)[["size"]]
+    )
+    
+    expect_equal(myself, rcpp)
   }
 )
 

@@ -46,26 +46,26 @@ double BigArun2010(const arma::mat & beta, const arma::mat & gamma, arma::vec do
 double BigDeveaud2014(const arma::mat & beta) {
   
   double aggr = 0;
-  arma::mat B = arma::exp(beta).t();
-  arma::mat MIN, MIN2, a, logged, d;
+  arma::mat X = arma::exp(beta).t();
+  arma::mat A, B, C, D, E, F;
   arma::vec column;
-
+  
+  A = X;
+  A.for_each( [](arma::mat::elem_type& val) { val = 1 / val; } );
+  
   int j;
-  for (j = 0; j < (B.n_cols - 1); j++){
-    column = B.col(j);
-    MIN = B.cols(j + 1, B.n_cols -1);
+  for (j = 0; j < (X.n_cols - 1); j++){
+    column = X.col(j);
+    C = A.cols(j + 1, A.n_cols - 1);
+    C.each_col() %= column;
+    E = column.t() * arma::log(C);
+    aggr += arma::sum(arma::sum(E, 0)) * 0.5;
 
-    MIN.for_each( [](arma::mat::elem_type& val) { val = 1 / val; } );
-    MIN.each_col() %= column;
-    a = column.t() * arma::log(MIN);
-    aggr += arma::sum(arma::sum(a, 0)) * 0.5;
-
-    MIN = B.cols(j + 1, B.n_cols -1);
-    MIN2 = MIN;
-    MIN2.each_col() /= column;
-    logged = arma::log(MIN2);
-    d = MIN % logged;
-    aggr += arma::sum(arma::sum(d, 0)) * 0.5;
+    C = X.cols(j + 1, X.n_cols - 1);
+    D = C;
+    D.each_col() /= column;
+    F = C % arma::log(D);
+    aggr += arma::sum(arma::sum(F, 0)) * 0.5;
   }
 
   return aggr / (beta.n_rows * (beta.n_rows - 1));

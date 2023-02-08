@@ -12,8 +12,8 @@
 #' 
 #' @details `mallet_install()` will download the mallet Java package
 #'   and put it into the java directory of the biglda R package.
-mallet_install <- function(url = "http://mallet.cs.umass.edu/dist/mallet-2.0.8.tar.gz", verbose = TRUE){
-  # "https://github.com/mimno/Mallet/releases/download/v202108/Mallet-202108-bin.tar.gz"
+mallet_install <- function(url = "https://github.com/mimno/Mallet/releases/download/v202108/Mallet-202108-bin.tar.gz", verbose = TRUE){
+  # "http://mallet.cs.umass.edu/dist/mallet-2.0.8.tar.gz"
   if (verbose) cli::cli_progress_step("downloading mallet")
   mallet_dir <- system.file(package = "biglda", "java")
   mallet_tarball <- file.path(mallet_dir, basename(url))

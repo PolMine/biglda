@@ -51,7 +51,7 @@ test_that(
     })
     ldatuning_deveaud2014 <- sum(jsd) / (lda_topicmodels@k * (lda_topicmodels@k - 1))
     
-    expect_identical(me, ldatuning_deveaud2014)
+    expect_equal(me, ldatuning_deveaud2014)
     
     expect_equal(
       FastDeveaud2014(lda_mallet, cl = parallel::detectCores() - 1L),

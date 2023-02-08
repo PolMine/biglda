@@ -7,7 +7,8 @@
 \title{Functions to manage mallet installation}
 \usage{
 mallet_install(
-  url = "http://mallet.cs.umass.edu/dist/mallet-2.0.8.tar.gz",
+  url =
+    "https://github.com/mimno/Mallet/releases/download/v202108/Mallet-202108-bin.tar.gz",
   verbose = TRUE
 )
 

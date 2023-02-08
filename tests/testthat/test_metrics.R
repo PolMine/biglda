@@ -22,6 +22,9 @@ test_that(
     ldatuning <- sum(cos.dist) / (lda_topicmodels@k*(lda_topicmodels@k-1)/2)
     
     expect_equal(me, ldatuning)
+    
+    cpp <- BigCao2009(lda_topicmodels@beta)
+    expect_equal(cpp, me)
   }
 )
 

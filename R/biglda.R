@@ -42,6 +42,9 @@
 #' @aliases biglda biglda-package
 #' @name biglda-package
 #' @rdname biglda-package
+#' @useDynLib biglda, .registration = TRUE
+#' @importFrom Rcpp evalCpp
+#' @exportPattern "^[[:alpha:]]+"
 NULL
 
 

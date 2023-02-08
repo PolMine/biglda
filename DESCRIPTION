@@ -24,7 +24,8 @@ Imports:
   slam,
   xml2,
   cli,
-  readr
+  readr,
+  Rcpp (>= 1.0.10)
 Suggests:
   testthat,
   knitr,
@@ -33,6 +34,7 @@ Suggests:
   webshot,
   tm
 SystemRequirements: java
+LinkingTo: Rcpp, RcppArmadillo
 VignetteBuilder: knitr
 Collate:
   'biglda.R'
@@ -44,4 +46,5 @@ Collate:
   'metrics.R'
   'svmlight.R'
   'zzz.R'
+  'RcppExports.R'
 RoxygenNote: 7.2.2

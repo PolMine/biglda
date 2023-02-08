@@ -58,6 +58,8 @@ test_that(
       FastDeveaud2014(lda_topicmodels, cl = parallel::detectCores() - 1L)
     )
     
+    big <- BigDeveaud2014(lda_topicmodels@beta)
+    expect_equal(me, big)
   }
 )
 

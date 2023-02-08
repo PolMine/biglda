@@ -3,11 +3,14 @@
 \name{BigCao2009}
 \alias{BigCao2009}
 \alias{BigArun2010}
+\alias{BigDeveaud2014}
 \title{RcppArmadillo implementation of topic model metrics}
 \usage{
 BigCao2009(X)
 
 BigArun2010(beta, gamma, doclengths)
+
+BigDeveaud2014(beta)
 }
 \arguments{
 \item{X}{The beta matrix of an LDA topic model.}

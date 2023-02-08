@@ -17,3 +17,8 @@ BigArun2010 <- function(beta, gamma, doclengths) {
     .Call(`_biglda_BigArun2010`, beta, gamma, doclengths)
 }
 
+#' @rdname rcppmetrics
+BigDeveaud2014 <- function(beta) {
+    .Call(`_biglda_BigDeveaud2014`, beta)
+}
+

@@ -71,29 +71,3 @@ double BigDeveaud2014(const arma::mat & beta) {
   return aggr / (beta.n_rows * (beta.n_rows - 1));
 }
 
-
-// setMethod("FastDeveaud2014", "matrix", function(x, cl = parallel::detectCores() - 1L){
-//   if (any(x == 0)) { x <- x + .Machine$double.xmin } # prevent NaN
-//   x_t <- t(x)
-//     
-//     dist <- pblapply(
-//         1L:(ncol(x_t) - 1L),
-//         function(i){
-//           m_min <- x_t[, -(1:i)]
-
-//           a <- x_t[,i] * log(x_t[,i] / m_min)
-//           b <- colSums(as.matrix(a))
-//           c <- sum(b) * 0.5
-//           
-//           d <- m_min * log(m_min / x_t[,i])
-//           e <- colSums(as.matrix(d))
-//           f <- sum(e) * 0.5
-//           
-//           c + f
-//         }
-//     )
-//     sum(unlist(dist)) / (nrow(x) * (nrow(x) - 1L))
-// })
-//   
-//   
-//   

@@ -106,4 +106,19 @@ test_that(
   }
 )
 
+test_that(
+  "save and load document topics",
+  {
+    m <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
+      mallet_load_topicmodel()
+    
+    fname <- save_document_topics(m)
+    y <- load_document_topics(fname, verbose = FALSE)
+    
+    y2 <- rJava::.jevalArray(m$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
+    dimnames(y2) <- list(m$getDocumentNames(), as.character(1L:ncol(y2)))
+    
+    expect_equal(y, y2)
+  }
+)
 

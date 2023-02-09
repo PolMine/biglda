@@ -294,19 +294,14 @@ mallet_get_sparse_word_weights_matrix <- function(x, n_topics = 50L, destfile = 
 #' fname <- save_document_topics(m)
 #' y <- load_document_topics(fname)
 #' dim(y)
-#' 
-#' y2 <- rJava::.jevalArray(m$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
-#' dimnames(y2) <- list(m$getDocumentNames(), as.character(1L:ncol(y2)))
-#' 
-#' testthat::expect_identical(dim(y), dim(y2))
-#' y2["Wolfgang Wieland_2009-11-11_1",]
-#' as.matrix(y)["Wolfgang Wieland_2009-11-11_1",]
-#' testthat::expect_equal(as.matrix(y), y2)
 #' @rdname documenttopics
 #' @export
 save_document_topics <- function(model, destfile = tempfile()){
-  jfile <- rJava::.jnew("java/io/File", destfile)
-  model$printDocumentTopics(jfile)
+  file <- rJava::.jnew("java/io/File", path.expand(destfile))
+  file_writer <- rJava::.jnew("java/io/FileWriter", file)
+  print_writer <- rJava::new(rJava::J("java/io/PrintWriter"), file_writer)
+  model$printDenseDocumentTopics(print_writer)
+  print_writer$close()
   destfile 
 }
 
@@ -317,63 +312,18 @@ save_document_topics <- function(model, destfile = tempfile()){
 #' @rdname documenttopics
 #' @export
 load_document_topics <- function(filename, verbose = TRUE){
-  
   stopifnot (is.character(filename))
   filename <- path.expand(filename)
+  
   filesize <- file.info(filename)$size
   class(filesize) <- "object_size"
   if (verbose) cli_alert_info("Size of data file: {.blue {format(filesize, 'Gb')}}")
   
-  first_data_line <- readLines(filename, n = 2L)[2]
-  n_topics <- length(strsplit(first_data_line, "\t")[[1]]) / 2 - 1L
-  if (TRUE) cli_alert_info("Number of topics: {.val {n_topics}}")
-  
-  
-  # we use data.table::fread() rather than readr::read_tsv() because of 
-  # data.table.melt()
-  datacols <- unlist(
-    lapply(
-      1L:n_topics,
-      function(i) paste0(c("topic", "weight"), i))
-  )
-  
-  if (verbose) cli_alert_info("read in data")
-  doctopics <- data.table::fread(
-    file = filename,
-    skip = 1L,
-    sep = "\t",
-    col.names = c("doc_id", "doc_name", datacols, "dummy"),
-    colClasses = c("integer", "character", rep(c("integer", "numeric"), times = n_topics), "integer"),
-    showProgress = verbose
-  )
-  doctopics[, "dummy" := NULL] # no idea where this dummy column comes from
-  docnames <- doctopics[["doc_name"]] # keep for late use
-  doctopics[, "doc_name" := NULL]
-  gc()
-  
-  if (verbose) cli_progress_step("melt data.table")
-  molten <- melt(
-    doctopics,
-    measure.vars = list(
-      paste0("topic", 1L:n_topics),
-      paste0("weight", 1L:n_topics)
-    )
-  )
-  rm(doctopics)
-  molten[, "variable" := NULL]
-  gc()
-  
-  if (verbose) cli_progress_step("order data")
-  setorderv(molten, cols = c("doc_id", "value1"))
-  molten[, "doc_id" := NULL][, "value1" := NULL]
-  gc()
-  
-  if (verbose) cli_progress_step("convert to matrix")
-  matrix(
-    data = molten[["value2"]],
-    nrow = length(docnames),
-    ncol = n_topics,
-    byrow = TRUE,
-    dimnames = list(docnames, as.character(1L:n_topics))
-  )
+  data <- fread(filename, sep = "\t")
+  docnames <- data[["V2"]]
+  data[, "V1" := NULL][, "V2" := NULL]
+  setnames(data, old = colnames(data), new = as.character(1L:ncol(data)))
+  m <- as.matrix(data)
+  rownames(m) <- docnames
+  m
 }

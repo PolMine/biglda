@@ -26,16 +26,21 @@ double BigCao2009(const arma::mat & X) {
 // [[Rcpp::export]]
 double BigArun2010(const arma::mat & beta, const arma::mat & gamma, arma::vec doclengths) {
   
-  arma::mat B = arma::exp(beta);
-  arma::vec d = arma::svd(B);
-  
+  arma::mat U;
+  arma::vec s;
+  arma::mat V;
+
+  arma::mat X = arma::exp(beta);
+
+  arma::svd_econ(U, s, V, X);
+
   arma::mat l = arma::conv_to<arma::mat>::from(doclengths).t();
   arma::mat M = l * gamma;
   M = M / l.max();
   arma::vec x2 = arma::conv_to<arma::vec>::from(M);
   
-  double a = arma::sum(d % arma::conv_to<arma::vec>::from(arma::log(d / x2)));
-  double b = arma::sum(x2 % arma::conv_to<arma::vec>::from(arma::log(x2 / d)));
+  double a = arma::sum(s % arma::conv_to<arma::vec>::from(arma::log(s / x2)));
+  double b = arma::sum(x2 % arma::conv_to<arma::vec>::from(arma::log(x2 / s)));
   
   return a + b;
 }

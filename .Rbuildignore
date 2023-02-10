@@ -3,3 +3,5 @@
 ^.github$
 ^data-raw$
 ^docs$
+^java$
+

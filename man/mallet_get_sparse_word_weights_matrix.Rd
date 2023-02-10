@@ -7,11 +7,11 @@
 mallet_get_sparse_word_weights_matrix(x, n_topics = 50L, destfile = tempfile())
 }
 \arguments{
-\item{x}{A \code{ParallelTopicModel} class object}
+\item{x}{A `ParallelTopicModel` class object}
 
-\item{n_topics}{A length-one \code{integer} vector, the number of topics.}
+\item{n_topics}{A length-one `integer` vector, the number of topics.}
 
-\item{destfile}{Length-one \code{character} vector, the filename of the
+\item{destfile}{Length-one `character` vector, the filename of the
 output file.}
 }
 \description{

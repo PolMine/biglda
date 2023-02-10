@@ -125,6 +125,7 @@ mallet_load_topicmodel <- function(binfile, instancefile, statefile, verbose = T
 #' `ParallelTopicModel` class needs to be used, the `RTopicModel` will not do
 #' it.
 #' @param filename A file with word weights.
+#' @param normalize A `logical` value, whether to normalize.
 #' @param verbose A `logical` value, whether to output progress messages.
 #' @export load_word_weights
 #' @importFrom slam simple_triplet_matrix
@@ -135,7 +136,7 @@ mallet_load_topicmodel <- function(binfile, instancefile, statefile, verbose = T
 #' fname <- save_word_weights(lda)
 #' word_weights <- load_word_weights(fname)
 #' @importFrom data.table fread
-load_word_weights <- function(filename, verbose = TRUE){
+load_word_weights <- function(filename, normalize = TRUE, verbose = TRUE){
   if (!file.exists(filename)) stop("file does not exist")
   
   if (verbose) cli_progress_step("read data from disk")
@@ -156,13 +157,26 @@ load_word_weights <- function(filename, verbose = TRUE){
   gc()
   
   if (verbose) cli_progress_step("create matrix")
-  matrix(
+  beta <- matrix(
     data = dt[["V3"]],
     nrow = n_topics,
     ncol = vocabsize,
     byrow = TRUE,
     dimnames = list(as.character(1L:n_topics), vocab)
   )
+  
+  if (normalize){
+    if (verbose) cli_alert_info("normalize beta matrix")
+    # inspired by Mallet code:
+    # topicNormalizers[topic] = 1.0 / (tokensPerTopic[topic] + numTypes * beta);
+    beta_coeff <- min(beta)
+    if (verbose) cli_alert_info("beta coefficient: {.val {beta_coeff}}")
+    tokens_per_topic <- apply(beta - beta_coeff, 1L, sum) # undo smoothing
+    topic_normalizers <- tokens_per_topic + (ncol(beta) * beta_coeff)
+    beta <- beta / topic_normalizers
+  }
+
+  beta
 }
 
 #' @details The function `save_word_weights()` will write a file that can be
@@ -207,9 +221,9 @@ save_word_weights <- function(model, destfile = tempfile(), verbose = TRUE){
 #' indeed to the `getTopicWords()`-method. Note however that the matrix is
 #' neither normalized nor smoothed nor algorithmized.
 #' 
-#' @param x A \code{ParallelTopicModel} class object
-#' @param n_topics A length-one \code{integer} vector, the number of topics.
-#' @param destfile Length-one \code{character} vector, the filename of the
+#' @param x A `ParallelTopicModel` class object
+#' @param n_topics A length-one `integer` vector, the number of topics.
+#' @param destfile Length-one `character` vector, the filename of the
 #'   output file.
 #' @export mallet_get_sparse_word_weights_matrix
 #' @examples 

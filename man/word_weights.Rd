@@ -5,12 +5,14 @@
 \alias{save_word_weights}
 \title{Process large topic word weights matrices}
 \usage{
-load_word_weights(filename, verbose = TRUE)
+load_word_weights(filename, normalize = TRUE, verbose = TRUE)
 
 save_word_weights(model, destfile = tempfile(), verbose = TRUE)
 }
 \arguments{
 \item{filename}{A file with word weights.}
+
+\item{normalize}{A `logical` value, whether to normalize.}
 
 \item{verbose}{A `logical` value, whether to output progress messages.}
 

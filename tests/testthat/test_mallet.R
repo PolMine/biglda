@@ -1,6 +1,7 @@
 library(biglda)
 if (isFALSE(mallet_is_installed())) mallet_install()
 library(polmineR)
+library(rJava)
 
 test_that(
   "",
@@ -88,7 +89,7 @@ test_that(
     # to disk. The advantage is that it is a sparse matrix that is
     # passed
     fname <- save_word_weights(model)
-    beta_1 <- load_word_weights(fname)
+    beta_1 <- load_word_weights(normalize = FALSE, fname)
 
     # This is the call used internally by 'as_LDA()'. The difference
     # is that the arguments of the $getTopicWords()-method are FALSE
@@ -109,16 +110,41 @@ test_that(
 test_that(
   "save and load document topics",
   {
-    m <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
+    model <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
       mallet_load_topicmodel()
     
-    fname <- save_document_topics(m)
-    y <- load_document_topics(fname, verbose = FALSE)
+    y <- save_document_topics(model) |>
+      load_document_topics(verbose = FALSE)
     
-    y2 <- rJava::.jevalArray(m$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
-    dimnames(y2) <- list(m$getDocumentNames(), as.character(1L:ncol(y2)))
+    y2 <- .jevalArray(model$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
+    dimnames(y2) <- list(model$getDocumentNames(), as.character(1L:ncol(y2)))
     
     expect_equal(y, y2)
+    
+    # -------------------------
+    
+    beta1 <- save_word_weights(model, verbose = FALSE) |>
+      load_word_weights(normalize = FALSE, verbose = FALSE)
+
+    beta2 <- .jevalArray(model$getTopicWords(FALSE, TRUE), simplify = TRUE)
+    rownames(beta2) <- as.character(1L:nrow(beta2))
+    colnames(beta2) <- strsplit(model$getAlphabet()$toString(), split = "\n")[[1]]
+
+    expect_equal(beta1, beta2)
+    
+    # check that R-side normalization yields same result as Mallet/Java --------
+    
+    beta1 <- save_word_weights(model, verbose = FALSE) |>
+      load_word_weights(normalize = TRUE, verbose = FALSE)
+
+    beta2 <- .jevalArray(model$getTopicWords(TRUE, TRUE), simplify = TRUE)
+    dimnames(beta2) <- list(
+      as.character(1L:nrow(beta2)),
+      strsplit(model$getAlphabet()$toString(), split = "\n")[[1]]
+
+    )
+
+    expect_equal(beta1, beta2)
   }
 )
 

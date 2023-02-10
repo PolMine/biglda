@@ -28,12 +28,4 @@ m <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
 fname <- save_document_topics(m)
 y <- load_document_topics(fname)
 dim(y)
-
-y2 <- rJava::.jevalArray(m$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
-dimnames(y2) <- list(m$getDocumentNames(), as.character(1L:ncol(y2)))
-
-testthat::expect_identical(dim(y), dim(y2))
-y2["Wolfgang Wieland_2009-11-11_1",]
-as.matrix(y)["Wolfgang Wieland_2009-11-11_1",]
-testthat::expect_equal(as.matrix(y), y2)
 }

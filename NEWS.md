@@ -8,6 +8,8 @@
 is found.
 * New functions `save_document_topics()` and `load_document_topics()` as more
 memory-efficient way to get gamma matrix from Java to R.
+* Function `load_word_weights()` now has argument `normalize` to reproduce 
+Java/Mallet-side normalization when loading the matrix.
 
 # biglda v0.0.1
 

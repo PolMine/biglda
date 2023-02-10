@@ -125,6 +125,10 @@ mallet_load_topicmodel <- function(binfile, instancefile, statefile, verbose = T
 #' `ParallelTopicModel` class needs to be used, the `RTopicModel` will not do
 #' it.
 #' @param filename A file with word weights.
+#' @param normalized A `logical` value, whether to normalize.
+#' @param beta_coeff As a matter of "smoothing", a coefficient is added to the
+#'   value oif the matrix. Ideally, state value explicitly in function call. If
+#'   missing, it will be guessed from the data.
 #' @param verbose A `logical` value, whether to output progress messages.
 #' @export load_word_weights
 #' @importFrom slam simple_triplet_matrix
@@ -134,35 +138,72 @@ mallet_load_topicmodel <- function(binfile, instancefile, statefile, verbose = T
 #' lda <- mallet_load_topicmodel(bin)
 #' fname <- save_word_weights(lda)
 #' word_weights <- load_word_weights(fname)
-#' @importFrom data.table fread
-load_word_weights <- function(filename, verbose = TRUE){
+#' @importFrom data.table fread dcast
+load_word_weights <- function(filename, minimized = TRUE, beta_coeff, normalized = TRUE, verbose = TRUE){
   if (!file.exists(filename)) stop("file does not exist")
   
   if (verbose) cli_progress_step("read data from disk")
   dt <- data.table::fread(
     file = filename,
-    sep = "\t", quote = "", 
+    sep = "\t", quote = "", na.strings = "",
+    col.names = c("topic", "token", "weight"),
+    colClasses = c("integer", "character", "numeric"),
     showProgress = verbose
   )
   if (verbose) cli_progress_done()
   
-  vocabsize <- nrow(dt[dt[["V1"]] == 0])
-  vocab <- dt[["V2"]][1:vocabsize]
-  if (verbose) cli_alert_info("vocabulary size: {.val {vocabsize}}")
-  n_topics <- max(dt[["V1"]]) + 1L
-  if (verbose) cli_alert_info("number of topics: {.val {n_topics}}")
+  if (minimized){
+    if (missing(beta_coeff)){
+      beta_coeff <- unique(
+        round(
+          dt[["weight"]] - trunc(dt[["weight"]]),
+          digits = 2
+        )
+      )
+      if (verbose) cli_alert_info("guessed beta coefficient: {.val {beta_coeff}}")
+    }
+    dt_ext <- dcast(
+      dt,
+      topic ~ token,
+      value.var = "weight",
+      fill = beta_coeff
+    )
+    beta <- as.matrix(
+      dt_ext[, 2L:ncol(dt_ext)],
+      rownames = dt_ext[[1]] + 1
+    )
+  } else {
+    vocabsize <- nrow(dt[dt[["topic"]] == 0])
+    vocab <- dt[["token"]][1:vocabsize]
+    if (verbose) cli_alert_info("vocabulary size: {.val {vocabsize}}")
+    n_topics <- max(dt[["topic"]]) + 1L
+    if (verbose) cli_alert_info("number of topics: {.val {n_topics}}")
+    
+    dt[, "topic" := NULL][, "token" := NULL]
+    gc()
+    
+    if (verbose) cli_progress_step("create matrix")
+    beta <- matrix(
+      data = dt[["weight"]],
+      nrow = n_topics,
+      ncol = vocabsize,
+      byrow = TRUE,
+      dimnames = list(as.character(1L:n_topics), vocab)
+    )
+  }
   
-  dt[, "V1" := NULL][, "V2" := NULL]
-  gc()
-  
-  if (verbose) cli_progress_step("create matrix")
-  matrix(
-    data = dt[["V3"]],
-    nrow = n_topics,
-    ncol = vocabsize,
-    byrow = TRUE,
-    dimnames = list(as.character(1L:n_topics), vocab)
-  )
+  if (normalized){
+    if (verbose) cli_alert_info("normalize beta matrix")
+    # inspired by Mallet code:
+    # topicNormalizers[topic] = 1.0 / (tokensPerTopic[topic] + numTypes * beta);
+    beta_coeff <- min(beta)
+    if (verbose) cli_alert_info("beta coefficient: {.val {beta_coeff}}")
+    tokens_per_topic <- apply(beta - beta_coeff, 1L, sum) # undo smoothing
+    topic_normalizers <- tokens_per_topic + (ncol(beta) * beta_coeff)
+    beta <- beta / topic_normalizers
+  }
+
+  beta
 }
 
 #' @details The function `save_word_weights()` will write a file that can be
@@ -175,22 +216,28 @@ load_word_weights <- function(filename, verbose = TRUE){
 #' @param model A topic model (class `jobjRef`).
 #' @param destfile Length-one `character` vector, the filename of the
 #'   output file.
+#' @param minimized A `logical` value, whether to print word weights with 
+#'   nonzero values (without smoothing) only.
 #' @rdname word_weights
 #' @export save_word_weights
-save_word_weights <- function(model, destfile = tempfile(), verbose = TRUE){
+save_word_weights <- function(model, destfile = tempfile(), minimized = FALSE, verbose = TRUE){
   file <- rJava::.jnew("java/io/File", destfile)
   file_writer <- rJava::.jnew("java/io/FileWriter", file)
   print_writer <- rJava::new(rJava::J("java/io/PrintWriter"), file_writer)
-  model$printTopicWordWeights(print_writer)
+  
+  if (minimized){
+    model$printNonzeroTopicWordWeights(print_writer)
+  } else {
+    model$printTopicWordWeights(print_writer)
+  }
+
   print_writer$close()
   
   if (verbose){
-    filesize <- file.info(destfile)$size
-    class(filesize) <- "object_size"
-    cli_alert_info("size of exported file: {.blue {format(filesize, 'Gb')}}")
+    fsize <- get_formatted_filesize(destfile)
+    cli_alert_info("size of exported file: {.val {fsize}}")
   }
-  
-  
+
   destfile 
 }
 
@@ -207,9 +254,9 @@ save_word_weights <- function(model, destfile = tempfile(), verbose = TRUE){
 #' indeed to the `getTopicWords()`-method. Note however that the matrix is
 #' neither normalized nor smoothed nor algorithmized.
 #' 
-#' @param x A \code{ParallelTopicModel} class object
-#' @param n_topics A length-one \code{integer} vector, the number of topics.
-#' @param destfile Length-one \code{character} vector, the filename of the
+#' @param x A `ParallelTopicModel` class object
+#' @param n_topics A length-one `integer` vector, the number of topics.
+#' @param destfile Length-one `character` vector, the filename of the
 #'   output file.
 #' @export mallet_get_sparse_word_weights_matrix
 #' @examples 

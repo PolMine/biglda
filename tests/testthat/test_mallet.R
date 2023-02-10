@@ -1,6 +1,7 @@
 library(biglda)
 if (isFALSE(mallet_is_installed())) mallet_install()
 library(polmineR)
+library(rJava)
 
 test_that(
   "",
@@ -81,44 +82,64 @@ test_that(
 test_that(
   "result of save_document_topics()/load_document_topics() equal to $getDocumentTopics()",
   {
-    bin <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
-    model <- mallet_load_topicmodel(bin)
-
-    # This is an approach that uses a (temporary) file written
-    # to disk. The advantage is that it is a sparse matrix that is
-    # passed
-    fname <- save_word_weights(model)
-    beta_1 <- load_word_weights(fname)
-
-    # This is the call used internally by 'as_LDA()'. The difference
-    # is that the arguments of the $getTopicWords()-method are FALSE
-    # (argument 'normalized') and TRUE (argument 'smoothed')
-    beta_2 <- rJava::.jevalArray(model$getTopicWords(FALSE, TRUE), simplify = TRUE)
-    alphabet <- strsplit(model$getAlphabet()$toString(), "\n")[[1]]
-    colnames(beta_2) <- alphabet
-    rownames(beta_2) <- as.character(1:nrow(beta_2))
+    model <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
+      mallet_load_topicmodel()
     
-    # Demonstrate the equivalence of the two approaches
-    identical(rownames(beta_1), rownames(beta_2))
-    identical(colnames(beta_1), colnames(beta_2))
-    identical(apply(beta_1, 1, order), apply(beta_2, 1, order))
-    testthat::expect_equal(beta_1, beta_2)
+    y <- save_document_topics(model) |>
+      load_document_topics(verbose = FALSE)
+    
+    y2 <- .jevalArray(model$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
+    dimnames(y2) <- list(model$getDocumentNames(), as.character(1L:ncol(y2)))
+    
+    expect_equal(y, y2)
   }
 )
 
 test_that(
   "save and load document topics",
   {
-    m <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
+    model <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
       mallet_load_topicmodel()
     
-    fname <- save_document_topics(m)
-    y <- load_document_topics(fname, verbose = FALSE)
+    # -------------------------
     
-    y2 <- rJava::.jevalArray(m$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
-    dimnames(y2) <- list(m$getDocumentNames(), as.character(1L:ncol(y2)))
+    beta_xl <- save_word_weights(model, minimized = FALSE, verbose = FALSE) |>
+      load_word_weights(minimized = FALSE, normalize = FALSE, verbose = FALSE)
     
-    expect_equal(y, y2)
+    beta_min <- save_word_weights(model, minimized = TRUE, verbose = FALSE) |>
+      load_word_weights(minimized = TRUE, normalize = FALSE, beta_coeff = 0.1, verbose = TRUE)
+    
+    beta_min <- beta_min[, colnames(beta_xl)]
+    
+    expect_equal(beta_xl, beta_min)
+    
+    # -------------------------
+
+    beta1 <- save_word_weights(model, verbose = FALSE) |>
+      load_word_weights(normalize = FALSE, verbose = FALSE)
+
+    beta2 <- .jevalArray(model$getTopicWords(FALSE, TRUE), simplify = TRUE)
+    rownames(beta2) <- as.character(1L:nrow(beta2))
+    colnames(beta2) <- strsplit(model$getAlphabet()$toString(), split = "\n")[[1]]
+    
+    beta1 <- beta1[, colnames(beta2)]
+
+    expect_equal(beta1, beta2)
+    
+    # check that R-side normalization yields same result as Mallet/Java --------
+    
+    beta1 <- save_word_weights(model, verbose = FALSE) |>
+      load_word_weights(normalize = TRUE, verbose = FALSE)
+
+    beta2 <- .jevalArray(model$getTopicWords(TRUE, TRUE), simplify = TRUE)
+    dimnames(beta2) <- list(
+      as.character(1L:nrow(beta2)),
+      strsplit(model$getAlphabet()$toString(), split = "\n")[[1]]
+
+    )
+    
+    beta1 <- beta1[, colnames(beta2)]
+    expect_equal(beta1, beta2)
   }
 )
 

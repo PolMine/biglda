@@ -5,12 +5,32 @@
 \alias{save_word_weights}
 \title{Process large topic word weights matrices}
 \usage{
-load_word_weights(filename, verbose = TRUE)
+load_word_weights(
+  filename,
+  minimized = TRUE,
+  beta_coeff,
+  normalized = TRUE,
+  verbose = TRUE
+)
 
-save_word_weights(model, destfile = tempfile(), verbose = TRUE)
+save_word_weights(
+  model,
+  destfile = tempfile(),
+  minimized = FALSE,
+  verbose = TRUE
+)
 }
 \arguments{
 \item{filename}{A file with word weights.}
+
+\item{minimized}{A `logical` value, whether to print word weights with 
+nonzero values (without smoothing) only.}
+
+\item{beta_coeff}{As a matter of "smoothing", a coefficient is added to the
+value oif the matrix. Ideally, state value explicitly in function call. If
+missing, it will be guessed from the data.}
+
+\item{normalized}{A `logical` value, whether to normalize.}
 
 \item{verbose}{A `logical` value, whether to output progress messages.}
 

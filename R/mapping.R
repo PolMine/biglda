@@ -10,11 +10,11 @@ setClass("LDA_Mallet", contains = "LDA")
 #' @param x A mallet topic model (ParallelTopicModel).
 #' @param beta The beta matrix for a topic model.
 #' @param gamma The gamma matrix for a topic model.
-#' @param verbose A \code{logical} value, whether to output progress messages.
-#' @details The \code{as_LDA()}-function will turn an estimated topic model
-#'   prepared using 'mallet' into a \code{LDA_Gibbs} object as defined in the
-#'   \code{topicmodels} package. This may be useful for using topic model
-#'   evaluation tools available for the \code{LDA_Gibbs} class, but not for the
+#' @param verbose A `logical` value, whether to output progress messages.
+#' @details The `as_LDA()`-function will turn an estimated topic model prepared
+#'   using 'mallet' into a `LDA_Mallet` object that inherits from classes
+#'   defined in the `topicmodels` package. This may be useful for using topic
+#'   model evaluation tools available for the `LDA_Gibbs` class, but not for the
 #'   immediate output of malled topicmodelling. Note that the gamma matrix is
 #'   normalized and smoothed, the beta matrix is the logarithmized matrix of
 #'   normalized and smoothed values obtained from the input mallet topic model.

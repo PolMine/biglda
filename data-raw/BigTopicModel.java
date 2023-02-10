@@ -1,8 +1,11 @@
-// javac -cp /opt/mallet-2.0.8/class/ BigTopicModel.java
-// then move it to ./biglda/inst/java
+// javac -cp /opt/mallet/Mallet-202108/class BigTopicModel.java
+// then
+// mv BigTopicModel.class ~/Lab/github/biglda/inst/java/
 
 import cc.mallet.types.*;
 import cc.mallet.topics.*;
+import java.io.IOException;
+import java.io.PrintWriter;
 
 public class BigTopicModel extends RTopicModel {
 	
@@ -23,5 +26,35 @@ public class BigTopicModel extends RTopicModel {
 		
 		return docLengthCounts;
 	}
+	
+	public void printNonzeroTopicWordWeights(PrintWriter out) throws IOException {
+
+      for (int topic = 0; topic < numTopics; topic++) {
+          for (int type = 0; type < numTypes; type++) {
+
+              int[] topicCounts = typeTopicCounts[type];
+
+              double weight = beta;
+
+              int index = 0;
+              while (index < topicCounts.length && topicCounts[index] > 0) {
+
+                  int currentTopic = topicCounts[index] & topicMask;
+
+                  if (currentTopic == topic) {
+                      weight += topicCounts[index] >> topicBits;
+                      break;
+                  }
+
+                  index++;
+              }
+              
+              if (weight > beta){
+                  out.println(topic + "\t" + alphabet.lookupObject(type) + "\t" + weight);
+              }
+
+          }
+      }
+  }
 }
 

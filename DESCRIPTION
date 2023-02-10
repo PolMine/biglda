@@ -1,6 +1,6 @@
 Package: biglda
 Type: Package
-Title: Fast LDA topic modelling for big corpora
+Title: Fast LDA Topic Modelling for Big Corpora
 Version: 0.0.1.9005
 Date: 2023-02-07
 Authors@R: c(

@@ -29,17 +29,11 @@ The `as_LDA()`-function will turn an estimated topic model prepared
 }
 \examples{
 data_dir <- system.file(package = "biglda", "extdata", "mallet")
-statefile <- file.path(data_dir, "lda_mallet.gz")
-instancefile <- file.path(data_dir, "instance_list.mallet")
 
-il <- rJava::J(
-  "cc/mallet/types/InstanceList")$load(
-    rJava::.jnew("java/io/File", instancefile
-))
+BTM <- mallet_load_topicmodel(
+  instancefile = file.path(data_dir, "instance_list.mallet"),
+  statefile = file.path(data_dir, "lda_mallet.gz")
+)
 
-btm <- BigTopicModel()
-btm$addInstances(il)
-btm$initializeFromState(rJava::.jnew("java/io/File", statefile))
-
-lda <- as_LDA(btm)
+LDA <- as_LDA(BTM)
 }

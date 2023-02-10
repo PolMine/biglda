@@ -25,19 +25,22 @@ setClass("LDA_Mallet", contains = "LDA")
 #' @importFrom cli cli_progress_step cli_progress_done
 #' @examples
 #' data_dir <- system.file(package = "biglda", "extdata", "mallet")
-#' statefile <- file.path(data_dir, "lda_mallet.gz")
-#' instancefile <- file.path(data_dir, "instance_list.mallet")
+#' BTM <- mallet_load_topicmodel(
+#'   instancefile = file.path(data_dir, "instance_list.mallet"),
+#'   statefile = file.path(data_dir, "lda_mallet.gz")
+#' )
 #' 
-#' il <- rJava::J(
-#'   "cc/mallet/types/InstanceList")$load(
-#'     rJava::.jnew("java/io/File", instancefile
-#' ))
+#' LDA <- as_LDA(BTM)
 #' 
-#' btm <- BigTopicModel()
-#' btm$addInstances(il)
-#' btm$initializeFromState(rJava::.jnew("java/io/File", statefile))
+#' # Avoid memory limitations as follows
+#' LDA2 <- as_LDA(BTM, beta = matrix(), gamma = matrix())
 #' 
-#' lda <- as_LDA(btm)
+#' B(LDA2) <- save_word_weights(BTM, minimized = TRUE) |>
+#'   load_word_weights(minimized = TRUE) |>
+#'   exp()
+#'   
+#' G(LDA2) <- save_document_topics(BTM) |>
+#'   load_document_topics()
 as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
   if (!grepl("(RTopicModel|BigTopicModel)", x$getClass()$toString()))

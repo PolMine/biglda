@@ -56,23 +56,14 @@ destfile <- tempfile()
 pta$write(rJava::.jnew("java/io/File", destfile))
 pta_reloaded <- mallet_load_topicmodel(destfile)
 
-binfile <- system.file(
-  package = "biglda", "extdata", "mallet",
-  "lda_mallet.bin"
-)
+# Restore model from binfile
+data_dir <- system.file(package = "biglda", "extdata", "mallet")
+binfile <- file.path(data_dir, "lda_mallet.bin")
 model <- mallet_load_topicmodel(binfile)
 
 # Restore model from instance- and statefile
-instancefile <- system.file(
-  package = "biglda",
-  "extdata", "mallet", "instance_list.mallet"
-)
-statefile <- system.file(
-  package = "biglda",
-  "extdata", "mallet", "lda_mallet.gz"
-)
 model <- mallet_load_topicmodel(
-  instancefile = instancefile,
-  statefile = statefile
+  instancefile = file.path(data_dir, "instance_list.mallet"),
+  statefile = file.path(data_dir, "lda_mallet.gz")
 )
 }

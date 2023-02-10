@@ -143,3 +143,30 @@ test_that(
   }
 )
 
+test_that(
+  "equivalence of different ways to as_LDA()",
+  {
+    data_dir <- system.file(package = "biglda", "extdata", "mallet")
+    
+    BTM <- mallet_load_topicmodel(
+      instancefile = file.path(data_dir, "instance_list.mallet"),
+      statefile = file.path(data_dir, "lda_mallet.gz")
+    )
+
+    LDA <- as_LDA(BTM, verbose = FALSE)
+
+    LDA2 <- as_LDA(BTM, beta = matrix(), gamma = matrix(), verbose = FALSE)
+    
+    B(LDA2) <- save_word_weights(BTM, minimized = TRUE) |>
+      load_word_weights(minimized = TRUE) |>
+      log()
+    
+    G(LDA2) <- save_document_topics(BTM) |>
+      load_document_topics()
+    
+    LDA@control@prefix <- character()
+    LDA2@control@prefix <- character()
+    expect_equal(LDA, LDA2)
+
+  }
+)

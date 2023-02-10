@@ -45,6 +45,8 @@ Collate:
   'gensim.R'
   'metrics.R'
   'svmlight.R'
+  'beta.R'
+  'gamma.R'
   'zzz.R'
   'RcppExports.R'
 RoxygenNote: 7.2.2

@@ -59,12 +59,13 @@ jobs:
       - name: Install system dependencies
         if: runner.os == 'Linux'
         run: |
+          sudo apt install libcurl4-openssl-dev
           while read -r cmd
           do
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
       
-      - name: Install CoreNLP
+      - name: Install Mallet
         if: runner.os != 'Windows'
         run: |
           sudo mkdir /opt/mallet

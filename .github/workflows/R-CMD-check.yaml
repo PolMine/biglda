@@ -70,7 +70,7 @@ jobs:
           sudo mkdir /opt/mallet
           cd /opt/mallet
           sudo wget https://github.com/mimno/Mallet/releases/download/v202108/Mallet-202108-bin.tar.gz
-          sudo unzip Mallet-202108-bin.tar.gz
+          sudo tar xzfv Mallet-202108-bin.tar.gz
           sudo rm Mallet-202108-bin.tar.gz
       
       - name: Install dependencies

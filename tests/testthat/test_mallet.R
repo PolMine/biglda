@@ -100,6 +100,20 @@ test_that(
   {
     model <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
       mallet_load_topicmodel()
+    
+    # -------------------------
+    
+    beta_xl <- save_word_weights(model, minimized = FALSE, verbose = FALSE) |>
+      load_word_weights(minimized = FALSE, normalize = FALSE, verbose = FALSE)
+    
+    beta_min <- save_word_weights(model, minimized = TRUE, verbose = FALSE) |>
+      load_word_weights(minimized = TRUE, normalize = FALSE, beta_coeff = 0.1, verbose = TRUE)
+    
+    beta_min <- beta_min[, colnames(beta_xl)]
+    
+    expect_equal(beta_xl, beta_min)
+    
+    # -------------------------
 
     beta1 <- save_word_weights(model, verbose = FALSE) |>
       load_word_weights(normalize = FALSE, verbose = FALSE)
@@ -107,6 +121,8 @@ test_that(
     beta2 <- .jevalArray(model$getTopicWords(FALSE, TRUE), simplify = TRUE)
     rownames(beta2) <- as.character(1L:nrow(beta2))
     colnames(beta2) <- strsplit(model$getAlphabet()$toString(), split = "\n")[[1]]
+    
+    beta1 <- beta1[, colnames(beta2)]
 
     expect_equal(beta1, beta2)
     
@@ -121,7 +137,8 @@ test_that(
       strsplit(model$getAlphabet()$toString(), split = "\n")[[1]]
 
     )
-
+    
+    beta1 <- beta1[, colnames(beta2)]
     expect_equal(beta1, beta2)
   }
 )

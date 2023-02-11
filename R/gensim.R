@@ -1,48 +1,7 @@
-#' Utilities to interface to gensim.
+#' Interfacing to gensim
 #' 
-#' @param model An LDA model trained by gensim.
-#' @param dtm A Document-Term-Matrix (will be turned into BOW data structure).
 #' @param modeldir Directory where a gensim LDA topic model has been saved.
 #' @param modelname Name of a gensim LDA topic model. The data for a model
-#'   consists of a set of files starting with the modelname each.
-#' @examples
-#' if (requireNamespace("reticulate") && reticulate::py_module_available("gensim")){
-#'   gensim <- reticulate::import("gensim")
-#'   
-#'   dir <- system.file(package = "biglda", "extdata", "gensim")
-#'   dtmfile <- file.path(dir, "germaparlmini_dtm.rds")
-#'   
-#'   lda <- gensim_ldamodel_load(modeldir = dir, modelname = "germaparlmini") |>
-#'     gensim_ldamodel_as_LDA_Gibbs(dtm = readRDS(dtmfile))
-#'     
-#'   topics_terms <- topicmodels::get_terms(lda, 10)
-#'   docs_topics <- topicmodels::get_topics(lda, 5)
-#' }
-#' @export gensim_ldamodel_as_LDA_Gibbs
-#' @details `gensim_ldamodel_as_LDA_Gibbs()`-function turns a
-#'   gensim/Python model (that may have been loaded using
-#'   `gensim_ldamodel_load()`) into the class `LDA_Gibbs` well-known
-#'   from the `topicmodels` package for further processing within R.
-#' @author Andreas Blaette
-#' @rdname gensim
-#' @importFrom methods new
-gensim_ldamodel_as_LDA_Gibbs <- function(model, dtm){
-  new(
-    "LDA_Mallet",
-    Dim = c(
-      nrow(dtm), # number of documents
-      model$num_terms # number of terms
-    ),
-    control = new("LDA_Gibbscontrol"),
-    k = model$num_topics,
-    terms = as.character(model$id2word$id2token),
-    documents = rownames(dtm), # Vector containing the document names
-    beta = as.matrix(model$expElogbeta), # matrix; logarithmized parameters of the word distribution for each topic
-    gamma = model$inference(chunk = dtm_as_bow(dtm), collect_sstats = FALSE)[[1]], # matrix, parameters of the posterior topic distribution for each document
-    iter = model$iterations
-  )
-}
-
 #' @details Use `gensim_ldamodel_load()` to load an ldamodel computed by gensim.
 #'   The return value is a `LdaModel` Python object that can serve as input to
 #'   functions or that can be processed using the `reticulate` package.

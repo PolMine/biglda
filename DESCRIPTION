@@ -41,7 +41,7 @@ Collate:
   'utils.R'
   'fileops.R'
   'as.instance_list.R'
-  'mapping.R'
+  'as_LDA.R'
   'gensim.R'
   'metrics.R'
   'svmlight.R'

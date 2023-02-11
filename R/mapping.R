@@ -1,16 +1,25 @@
 #' LDA Mallet Class.
 #' 
 #' @importClassesFrom topicmodels TopicModel LDA LDA_Gibbscontrol
+#' @exportClass
 setClass("LDA_Mallet", contains = "LDA")
 
 
+#' @exportClass 
+setClass("LDA_Gensim", contains = "LDA")
 
-#' Convert mallet LDA to topicanalysis class
+
+
+#' Convert Gensim or Mallet LDA to R class
 #' 
-#' @param x A mallet topic model (ParallelTopicModel).
-#' @param beta The beta matrix for a topic model.
-#' @param gamma The gamma matrix for a topic model.
+#' @param x A Gensim or Mallet topic model (`ParallelTopicModel`).
 #' @param verbose A `logical` value, whether to output progress messages.
+#' @export as_LDA
+#' @rdname as_LDA
+#' @importFrom methods is
+#' @importFrom cli cli_progress_step cli_progress_done
+setGeneric("as_LDA", function(x, ...) standardGeneric("as_LDA"))
+
 #' @details The `as_LDA()`-function will turn an estimated topic model prepared
 #'   using 'mallet' into a `LDA_Mallet` object that inherits from classes
 #'   defined in the `topicmodels` package. This may be useful for using topic
@@ -18,11 +27,8 @@ setClass("LDA_Mallet", contains = "LDA")
 #'   immediate output of malled topicmodelling. Note that the gamma matrix is
 #'   normalized and smoothed, the beta matrix is the logarithmized matrix of
 #'   normalized and smoothed values obtained from the input mallet topic model.
-#' @export as_LDA
-#' @importFrom pbapply pblapply
-#' @rdname mapping
-#' @importFrom methods is
-#' @importFrom cli cli_progress_step cli_progress_done
+#' @param beta The beta matrix for a topic model.
+#' @param gamma The gamma matrix for a topic model.
 #' @examples
 #' data_dir <- system.file(package = "biglda", "extdata", "mallet")
 #' BTM <- mallet_load_topicmodel(
@@ -41,7 +47,7 @@ setClass("LDA_Mallet", contains = "LDA")
 #'   
 #' G(LDA2) <- save_document_topics(BTM) |>
 #'   load_document_topics()
-as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
+setMethod("as_LDA", "jobjRef",  function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   
   if (!grepl("(RTopicModel|BigTopicModel)", x$getClass()$toString()))
     stop("incoming object needs to be class ParallelTopicModel/RTopicModel/BigTopicModel")
@@ -90,5 +96,39 @@ as_LDA <- function(x, verbose = TRUE, beta = NULL, gamma = NULL){
   # dirty hack to compensate that the LDA_Gibbs class is not exported
   attr(attr(y, "class"), "package") <- "topicmodels" 
   y
-}
+})
 
+
+#' @param dtm A Document-Term-Matrix (will be turned into BOW data structure).
+#'   consists of a set of files starting with the modelname each.
+#' @examples
+#' if (requireNamespace("reticulate") && reticulate::py_module_available("gensim")){
+#'   gensim <- reticulate::import("gensim")
+#'   
+#'   dir <- system.file(package = "biglda", "extdata", "gensim")
+#'   dtmfile <- file.path(dir, "germaparlmini_dtm.rds")
+#'   
+#'   lda <- gensim_ldamodel_load(modeldir = dir, modelname = "germaparlmini") |>
+#'     gensim_ldamodel_as_LDA_Gibbs(dtm = readRDS(dtmfile))
+#'     
+#'   topics_terms <- topicmodels::get_terms(lda, 10)
+#'   docs_topics <- topicmodels::get_topics(lda, 5)
+#' }
+#' @rdname as_LDA
+#' @importFrom methods new
+setMethod("as_LDA", "gensim.models.ldamodel.LdaModel", function(x, dtm){
+  new(
+    "LDA_Gensim",
+    Dim = c(
+      nrow(dtm), # number of documents
+      model$num_terms # number of terms
+    ),
+    control = new("LDA_Gibbscontrol"),
+    k = model$num_topics,
+    terms = as.character(model$id2word$id2token),
+    documents = rownames(dtm), # Vector containing the document names
+    beta = as.matrix(model$expElogbeta), # matrix; logarithmized parameters of the word distribution for each topic
+    gamma = model$inference(chunk = dtm_as_bow(dtm), collect_sstats = FALSE)[[1]], # matrix, parameters of the posterior topic distribution for each document
+    iter = model$iterations
+  )
+})

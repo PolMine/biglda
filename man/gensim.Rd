@@ -26,44 +26,43 @@ consists of a set of files starting with the modelname each.}
 Utilities to interface to gensim.
 }
 \details{
-The \code{gensim_ldamodel_as_LDA_Gibbs()}-function turns a
+`gensim_ldamodel_as_LDA_Gibbs()`-function turns a
   gensim/Python model (that may have been loaded using
-  \code{gensim_ldamodel_load}) into the class \code{LDA_Gibbs} well-known
-  from the \code{topicmodels} package for further processing within R.
+  `gensim_ldamodel_load()`) into the class `LDA_Gibbs` well-known
+  from the `topicmodels` package for further processing within R.
 
-Use \code{gensim_ldamodel_load} to load an ldamodel computed by gensim. The 
-return value is a \code{LdaModel} Python object that can serve as input to functions
-or that can be processed using the \code{reticulate} package.
+Use `gensim_ldamodel_load()` to load an ldamodel computed by gensim.
+  The return value is a `LdaModel` Python object that can serve as input to
+  functions or that can be processed using the `reticulate` package.
 
 The input to gensim's LDA modelling methods is a representation of
   corpora in a data format denoted as "BOW". This utility function
-  \code{dtm_as_bow} turns a sparse matrix (class
-  \code{simple_triplet_matrix}) into the bow input format required by gensim.
+  `dtm_as_bow()` turns a sparse matrix (class `simple_triplet_matrix`) into
+  the bow input format required by gensim.
 }
 \examples{
-\dontrun{
-if (requireNamespace("reticulate")){
+if (requireNamespace("reticulate") && reticulate::py_module_available("gensim")){
   gensim <- reticulate::import("gensim")
-
-  modeldir <- system.file(package = "biglda", "extdata", "gensim")
-  modelname <- "germaparlmini"
   
-  dtm <- readRDS(
-    file = system.file(
-      package = "biglda", "extdata", "gensim", "germaparlmini_dtm.rds"
-    )
-  )
+  dir <- system.file(package = "biglda", "extdata", "gensim")
+  dtmfile <- file.path(dir, "germaparlmini_dtm.rds")
   
-  lda <- gensim_ldamodel_load(
-    modeldir = system.file(package = "biglda", "extdata", "gensim"),
-    modelname = "germaparlmini"
-  )
+  lda <- gensim_ldamodel_load(modeldir = dir, modelname = "germaparlmini") |>
+    gensim_ldamodel_as_LDA_Gibbs(dtm = readRDS(dtmfile))
+    
+  topics_terms <- topicmodels::get_terms(lda, 10)
+  docs_topics <- topicmodels::get_topics(lda, 5)
+}
+library(polmineR)
+library(slam)
+library(reticulate)
+gensim <- import("gensim")
+use("RcppCWB")
 
-  y <- gensim_ldamodel_as_LDA_Gibbs(model = lda, dtm = dtm)
-  topics_terms <- topicmodels::get_terms(y, 10)
-  docs_topics <- topicmodels::get_topics(y, 5)
-}
-}
+bow <- corpus("REUTERS") \%>\%
+  split(s_attribute = "id") \%>\%
+  as.DocumentTermMatrix(p_attribute = "word", verbose = FALSE) \%>\%
+  dtm_as_bow()
 }
 \author{
 Andreas Blaette

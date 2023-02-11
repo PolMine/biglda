@@ -276,14 +276,15 @@ instance_list_save <- function(x, filename = tempfile()){
 }
 
 
-#' @details `instance_list_load()` will load a Java InstanceList object that has
+#' @details `instance_list_load()` will load a Java `InstanceList` object that has
 #'   been saved to disk (e.g. by using the `instance_list_save()` function).
-#'   The return value is a `jobjRef` object. Internally, the function reuses
-#'   code of the function `load.mallet.instances()` from the R package `mallet`.
+#'   The return value is a `jobjRef` object.
 #' @rdname as.instance_list
 #' @export instance_list_load
 #' @importFrom rJava J
 instance_list_load <- function(filename){
+  filename <- path.expand(filename)
+  if (!file.exists(filename)) stop("file does not exist")
   J("cc.mallet.types.InstanceList")$load(rJava::.jnew("java/io/File", filename))
 }
 

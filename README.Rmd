@@ -32,6 +32,11 @@ It is good practice to evaluate a set of  topic models for hyperparameter
 optimization. So you need a fast implementation of LDA topic modelling to be
 able to fit a set of topic models within reasonable time.
 
+- *To cost of interfacing*: R is very productive for developing your analysis, 
+but the best implementations of LDA topic modelling are written in Python, Java
+and C. Transferring the data between programming languages is a potential 
+bottleneck and can be quite slow.
+
 - *Evaluating topic models*: Issues performance and memory efficiency are
 relevant when computing indicators to assess topic models may be considerable.
 Computations require mathematical  operations with really large matrices. Memory

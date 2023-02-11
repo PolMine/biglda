@@ -2,9 +2,14 @@
 #' @rdname svmlight
 setGeneric("svmlight", function(x, ...) standardGeneric("svmlight"))
 
-#' Export Matrix as svmlight format
+#' Generate svmlight format
 #' 
 #' The svmlight data format is an input format used by Mallet.
+#' 
+#' Note that it is (currently) not possible to generate a (Mallet) `InstanceList`
+#' from svmlight input that can be used for Mallet topic modelling: The Mallet
+#' output from svmlight input is a `FeatureVector`, but Mallet topic modelling
+#' requires a `FeatureSequence` as input.
 #' 
 #' @param x Input object, `DocumentTermMatrix` for the time being.
 #' @param filename Path to a file.
@@ -36,7 +41,7 @@ setMethod("svmlight", "DocumentTermMatrix", function(x, filename, verbose = TRUE
     function(i){
       index <- order(features[[i]])
       values <- sprintf("%s:%d", features[[i]][index], values[[i]][index])
-      sprintf("1 %s\n", paste(values, collapse = " "))
+      sprintf("%d %s", i, paste(values, collapse = " "))
     }
   )
   

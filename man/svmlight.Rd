@@ -3,7 +3,7 @@
 \name{svmlight}
 \alias{svmlight}
 \alias{svmlight,DocumentTermMatrix-method}
-\title{Export Matrix as svmlight format}
+\title{Generate svmlight format}
 \usage{
 svmlight(x, ...)
 
@@ -20,6 +20,12 @@ svmlight(x, ...)
 }
 \description{
 The svmlight data format is an input format used by Mallet.
+}
+\details{
+Note that it is (currently) not possible to generate a (Mallet) `InstanceList`
+from svmlight input that can be used for Mallet topic modelling: The Mallet
+output from svmlight input is a `FeatureVector`, but Mallet topic modelling
+requires a `FeatureSequence` as input.
 }
 \examples{
 library(polmineR)

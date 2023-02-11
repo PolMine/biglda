@@ -29,11 +29,20 @@ The `as_LDA()`-function will turn an estimated topic model prepared
 }
 \examples{
 data_dir <- system.file(package = "biglda", "extdata", "mallet")
-
 BTM <- mallet_load_topicmodel(
   instancefile = file.path(data_dir, "instance_list.mallet"),
   statefile = file.path(data_dir, "lda_mallet.gz")
 )
 
 LDA <- as_LDA(BTM)
+
+# Avoid memory limitations as follows
+LDA2 <- as_LDA(BTM, beta = matrix(), gamma = matrix())
+
+B(LDA2) <- save_word_weights(BTM, minimized = TRUE) |>
+  load_word_weights(minimized = TRUE) |>
+  exp()
+  
+G(LDA2) <- save_document_topics(BTM) |>
+  load_document_topics()
 }

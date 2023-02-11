@@ -55,10 +55,9 @@ turn ParallelTopicModel Java object into \code{LDA_Gibbs} object from
 package \code{topicmodels}.
 }
 \details{
-`instance_list_load()` will load a Java InstanceList object that has
+`instance_list_load()` will load a Java `InstanceList` object that has
   been saved to disk (e.g. by using the `instance_list_save()` function).
-  The return value is a `jobjRef` object. Internally, the function reuses
-  code of the function `load.mallet.instances()` from the R package `mallet`.
+  The return value is a `jobjRef` object.
 }
 \examples{
  

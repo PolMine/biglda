@@ -1,4 +1,5 @@
 # biglda v0.0.2
+
 * `mallet_instance_list_store()` renamed to `instance_list_save()` and
 `mallet_instance_list_restore()` renamed to `instance_list_load()`.
 * `as_LDA()` outputs information on number of docs / alphabet size.
@@ -10,6 +11,8 @@ is found.
 memory-efficient way to get gamma matrix from Java to R.
 * Function `load_word_weights()` now has argument `normalize` to reproduce 
 Java/Mallet-side normalization when loading the matrix.
+* `instance_list_load()` will check whether file exists.
+* `svmlight()` reports document number at beginning of line.
 
 # biglda v0.0.1
 

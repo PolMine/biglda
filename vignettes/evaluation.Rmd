@@ -21,7 +21,8 @@ library(parallel)
 library(purrr)
 library(stringi)
 library(ggplot2)
-use("polmineR")
+
+use("RcppCWB", corpus = "REUTERS")
 ```
 
 
@@ -36,21 +37,16 @@ cores_to_use <- detectCores() - 1L
 ## Prepare data
 
 ```{r make_instance_list, message = FALSE, eval = TRUE}
-discard <- c(tm::stopwords("de"), capitalize(tm::stopwords("de")))
+discard <- c(tm::stopwords("en"), capitalize(tm::stopwords("en")))
 
-speeches_li <- corpus("GERMAPARLMINI") %>%
-  as.speeches(s_attribute_name = "speaker", s_attribute_date = "date") %>%
+instance_list <- corpus("REUTERS") %>%
+  split(s_attribute = "id") %>%
   get_token_stream(p_attribute = "word", subset = {!word %in% discard}) %>%
-  keep(function(x) length(x) >= 100L) # drop short documents
-
-speeches <- speeches_li %>%
+  lapply(tolower) %>%
+  keep(function(x) length(x) >= 50L) %>% # drop short documents
   sapply(stri_c, collapse = "\n") %>%
-  discard(function(x) nchar(x) == 0L) # drop empty documents
-
-docnames <- names(speeches)
-names(speeches) <- NULL # equivalent to unname() - but without copy
-
-instance_list <- as.instance_list(speeches)
+  discard(function(x) nchar(x) == 0L) %>% # drop empty documents
+  as.instance_list()
 ```
 
 
@@ -58,7 +54,7 @@ instance_list <- as.instance_list(speeches)
 
 ```{r fit_models, eval = TRUE, message = FALSE, fig.width = 10}
 metrics <- lapply(
-  seq(from = 25, to = 150, by = 25),
+  seq(from = 5, to = 30, by = 5),
   function(k){
     message("... fitting model for k: ", k)
     BTM <- BigTopicModel(n_topics = k, alpha_sum = 5.1, beta = 0.1)

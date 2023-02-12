@@ -65,6 +65,14 @@ jobs:
             eval sudo $cmd
           done < <(Rscript -e 'writeLines(remotes::system_requirements("ubuntu", "20.04"))')
       
+      
+      - name: Install R dependencies
+        run: |
+          remotes::install_deps(dependencies = TRUE)
+          remotes::install_cran("rcmdcheck")
+          remotes::install_cran("covr")
+        shell: Rscript {0}
+
       - name: Install Mallet
         if: runner.os != 'Windows'
         run: |
@@ -73,12 +81,12 @@ jobs:
           sudo wget https://github.com/mimno/Mallet/releases/download/v202108/Mallet-202108-bin.tar.gz
           sudo tar xzfv Mallet-202108-bin.tar.gz
           sudo rm Mallet-202108-bin.tar.gz
-      
-      - name: Install dependencies
+
+      - name: Install Gensim
+        if: runner.os != 'Windows'
         run: |
-          remotes::install_deps(dependencies = TRUE)
-          remotes::install_cran("rcmdcheck")
-          remotes::install_cran("covr")
+          reticulate::install_miniconda()
+          reticulate::conda_install(packages = "gensim")
         shell: Rscript {0}
 
       - name: Check

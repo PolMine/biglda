@@ -1,11 +1,7 @@
 ---
-title: "Compute mallet topic model"
+title: "Compute Mallet topic model"
 date: "`r Sys.Date()`"
-output: rmarkdown::html_vignette
-vignette: >
-  %\VignetteIndexEntry{Compute mallet topic model}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
+output: html_document
 editor_options: 
   chunk_output_type: console
 ---
@@ -15,79 +11,85 @@ editor_options:
 ### Settings
 
 ```{r filenames}
-instancefile <- tempfile() # Use findable path
 modelfile <- tempfile() # Use findable path
+min_doc_length <- 50L
 ```
 
-The memory available for the Java Virtual Machine (JVM) to be used needs to be defined before creating the JVM
+The memory available for the Java Virtual Machine (JVM) to be used needs to be
+defined before creating the JVM
 
 ```{r java_settings}
-options(java.parameters = "-Xmx4g") # Sufficient for larger data
+options(java.parameters = "-Xmx4g") # Increase further for larger data
 ```
 
 
 ### Load libraries
 
 ```{r load_libraries, message = FALSE}
-library("polmineR")
-library(topicanalysis)
-library(mallet) # Includes mallet jars
-library(rJava)
-library(data.table)
+library(biglda)
+library(polmineR) # min v0.8.7.9013
+library(purrr)
+library(stringi)
+use("RcppCWB", corpus = "REUTERS")
 ```
 
 
 ## Corpus data
 
-### Create document-level data
+### Generate and pre-process input data
 
 ```{r corpus_data, message = FALSE}
-use("polmineR")
-coi <- "GERMAPARLMINI"
-speeches <- as.speeches(coi, s_attribute_name = "speaker")
-```
+discard <- c(tm::stopwords("en"), capitalize(tm::stopwords("en")))
 
+articles <- corpus("REUTERS") %>%
+  split(s_attribute = "id") %>%
+  get_token_stream(p_attribute = "word", subset = {!word %in% discard}) %>%
+  keep(function(x) length(x) >= min_doc_length) %>% # drop short documents
+  sapply(stri_c, collapse = "\n") %>%
+  discard(function(x) nchar(x) == 0L) # drop empty documents
 
-### R-side preprocessing
-
-Keep only documents with a minimum length.
-
-```{r min_length, message = FALSE}
-doc_min_length <- 100L
-dt <- as.data.table(summary(speeches))
-speeches <- speeches[[ dt[size >= doc_min_length][["name"]] ]]
+docnames <- names(articles)
+names(articles) <- NULL # equivalent to unname() - but without copy
 ```
 
 
 ### Create instance list
 
 ```{r instance_list}
-instance_list <- mallet_make_instance_list(speeches)
+instance_list <- as.instance_list(articles)
 ```
 
-Implicitly, the `mallet_make_instance_list` uses stopwords of the `tm` package.
 
+## Topic modelling
 
-## Estimate topic model
-
-Starting to estimate the topic model at: `r (format(started <- Sys.time(), format = "%T"))`
+### Configure Mallet
 
 ```{r estimate_topic_model}
-lda <- .jnew("cc/mallet/topics/ParallelTopicModel", 25L, 5.1, 0.1)
-lda$addInstances(instance_list)
-lda$setNumThreads(1L)
-lda$setTopicDisplay(50L, 10L)
-lda$setNumIterations(2000L)
-lda$estimate()
+BTM <- BigTopicModel(n_topics = 25L)
+BTM$addInstances(instance_list)
+BTM$setNumThreads(1L)
+BTM$setTopicDisplay(50L, 10L)
+BTM$setNumIterations(1000L)
 ```
 
-Finished computation at `r (format(finished <- Sys.time(), "%T"))` (total time: `r format(Sys.time() - started, format = "%T")`).
+
+### Fit topic model
+
+Starting to estimate topic model at: `r (format(started <- Sys.time(), format = "%T"))`
+
+```{r}
+BTM$estimate()
+```
+
+Finished computation: `r (format(finished <- Sys.time(), "%T"))`
+
+Total time: `r format(Sys.time() - started, format = "%T")`
 
 
 ## Save topic model
 
 ```{r save_topic_model}
-lda$write(rJava::.jnew("java/io/File", modelfile))
+BTM$write(rJava::.jnew("java/io/File", modelfile))
 ```
 
 

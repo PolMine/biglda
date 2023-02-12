@@ -18,13 +18,15 @@ gensim_ldamodel_load <- function(modeldir, modelname){
   }
 }
 
+#' Convert DocumentTermMatrix to Gensim corpus.
+#' 
+#' @param dtm A Document-Term-Matrix.
 #' @details The input to gensim's LDA modelling methods is a representation of
 #'   corpora in a data format denoted as "BOW". This utility function
 #'   `dtm_as_bow()` turns a sparse matrix (class `simple_triplet_matrix`) into
 #'   the bow input format required by gensim.
 #' @export dtm_as_bow
 #' @author Andreas Blaette
-#' @rdname gensim
 #' @examples 
 #' if (requireNamespace("reticulate") && reticulate::py_module_available("gensim")){
 #'   library(polmineR)

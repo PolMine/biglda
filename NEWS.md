@@ -13,6 +13,7 @@ memory-efficient way to get gamma matrix from Java to R.
 Java/Mallet-side normalization when loading the matrix.
 * `instance_list_load()` will check whether file exists.
 * `svmlight()` reports document number at beginning of line.
+* `gensim_ldamodel_as_LDA_Gibbs()` integrated as a `as_LDA()` method.
 
 # biglda v0.0.1
 

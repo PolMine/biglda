@@ -1,24 +1,35 @@
 #' LDA Mallet Class.
 #' 
 #' @importClassesFrom topicmodels TopicModel LDA LDA_Gibbscontrol
-#' @exportClass
+#' @exportClass LDA_Mallet
+#' @rdname LDA_classes
 setClass("LDA_Mallet", contains = "LDA")
 
 
-#' @exportClass 
+#' @rdname LDA_classes
+#' @exportClass LDA_Gensim
 setClass("LDA_Gensim", contains = "LDA")
-
 
 
 #' Convert Gensim or Mallet LDA to R class
 #' 
 #' @param x A Gensim or Mallet topic model (`ParallelTopicModel`).
+#' @param beta A `matrix` with word-topic distribution that will be assigned to
+#'   slot 'beta'. If missing (default), the matrix will be derived from the
+#'   input model. To assign the matrix in a separate step, use empty matrix
+#'   (`matrix()`) as argument.
+#' @param gamma A matrix with topic distribution for each document that will be
+#'   assigned to slot 'gamma'. If missing (default), the matrix will be derived from the
+#'   input model. To assign the matrix in a separate step, use empty matrix
+#'   (`matrix()`) as argument.
 #' @param verbose A `logical` value, whether to output progress messages.
+#' @param ... Further arguments (unused).
 #' @export as_LDA
 #' @rdname as_LDA
 #' @importFrom methods is
 #' @importFrom cli cli_progress_step cli_progress_done
-setGeneric("as_LDA", function(x, ...) standardGeneric("as_LDA"))
+as_LDA <- function (x, ...) UseMethod("as_LDA")
+
 
 #' @details The `as_LDA()`-function will turn an estimated topic model prepared
 #'   using 'mallet' into a `LDA_Mallet` object that inherits from classes
@@ -27,8 +38,6 @@ setGeneric("as_LDA", function(x, ...) standardGeneric("as_LDA"))
 #'   immediate output of malled topicmodelling. Note that the gamma matrix is
 #'   normalized and smoothed, the beta matrix is the logarithmized matrix of
 #'   normalized and smoothed values obtained from the input mallet topic model.
-#' @param beta The beta matrix for a topic model.
-#' @param gamma The gamma matrix for a topic model.
 #' @examples
 #' data_dir <- system.file(package = "biglda", "extdata", "mallet")
 #' BTM <- mallet_load_topicmodel(
@@ -38,7 +47,7 @@ setGeneric("as_LDA", function(x, ...) standardGeneric("as_LDA"))
 #' 
 #' LDA <- as_LDA(BTM)
 #' 
-#' # Avoid memory limitations as follows
+#' # Avoid memory limitations by preparing beta/gamma matrix separately
 #' LDA2 <- as_LDA(BTM, beta = matrix(), gamma = matrix())
 #' 
 #' B(LDA2) <- save_word_weights(BTM, minimized = TRUE) |>
@@ -47,10 +56,14 @@ setGeneric("as_LDA", function(x, ...) standardGeneric("as_LDA"))
 #'   
 #' G(LDA2) <- save_document_topics(BTM) |>
 #'   load_document_topics()
-setMethod("as_LDA", "jobjRef",  function(x, verbose = TRUE, beta = NULL, gamma = NULL){
+#' @rdname as_LDA
+#' @exportS3Method 
+as_LDA.jobjRef <- function(x, beta, gamma, dtm, verbose = TRUE, ...){
   
   if (!grepl("(RTopicModel|BigTopicModel)", x$getClass()$toString()))
     stop("incoming object needs to be class ParallelTopicModel/RTopicModel/BigTopicModel")
+  
+  if (length(list(...)) > 0L) warning("Three dots (...) unused in as_LDA.jobjRef() ")
   
   if (verbose) cli_progress_step("get number of documents and number of terms")
   dimensions <- c(
@@ -69,12 +82,12 @@ setMethod("as_LDA", "jobjRef",  function(x, verbose = TRUE, beta = NULL, gamma =
   cli_progress_done()
   if (verbose) cli_alert_info("number of document names: {.val {length(docs)}}")
   
-  if (is.null(gamma)){
+  if (missing(gamma)){
     if (verbose) cli_progress_step("getting topic probabilities (gamma matrix)")
     gamma <- rJava::.jevalArray(x$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
   }
   
-  if (is.null(beta)){
+  if (missing(beta)){
     if (verbose) cli_progress_step("getting topic word weights (beta matrix)")
     beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
     beta <- log(beta)
@@ -96,11 +109,14 @@ setMethod("as_LDA", "jobjRef",  function(x, verbose = TRUE, beta = NULL, gamma =
   # dirty hack to compensate that the LDA_Gibbs class is not exported
   attr(attr(y, "class"), "package") <- "topicmodels" 
   y
-})
+}
 
 
 #' @param dtm A Document-Term-Matrix (will be turned into BOW data structure).
 #'   consists of a set of files starting with the modelname each.
+#' @rdname as_LDA
+#' @importFrom methods new
+#' @exportS3Method 
 #' @examples
 #' if (requireNamespace("reticulate") && reticulate::py_module_available("gensim")){
 #'   gensim <- reticulate::import("gensim")
@@ -109,26 +125,47 @@ setMethod("as_LDA", "jobjRef",  function(x, verbose = TRUE, beta = NULL, gamma =
 #'   dtmfile <- file.path(dir, "germaparlmini_dtm.rds")
 #'   
 #'   lda <- gensim_ldamodel_load(modeldir = dir, modelname = "germaparlmini") |>
-#'     gensim_ldamodel_as_LDA_Gibbs(dtm = readRDS(dtmfile))
+#'     as_LDA(dtm = readRDS(dtmfile))
 #'     
 #'   topics_terms <- topicmodels::get_terms(lda, 10)
 #'   docs_topics <- topicmodels::get_topics(lda, 5)
 #' }
-#' @rdname as_LDA
-#' @importFrom methods new
-setMethod("as_LDA", "gensim.models.ldamodel.LdaModel", function(x, dtm){
-  new(
+as_LDA.gensim.models.ldamodel.LdaModel <- function(x, beta, gamma, dtm, verbose = TRUE, ...){
+  
+  if (length(list(...)) > 0L) warning("Three dots (...) unused in as_LDA.jobjRef() ")
+  
+  if (verbose) cli_progress_step("Insantiate basic LDA_Gensim S4 class")
+  ldamodel <- new(
     "LDA_Gensim",
     Dim = c(
       nrow(dtm), # number of documents
-      model$num_terms # number of terms
+      x$num_terms # number of terms
     ),
     control = new("LDA_Gibbscontrol"),
-    k = model$num_topics,
-    terms = as.character(model$id2word$id2token),
+    k = x$num_topics,
+    terms = as.character(),
     documents = rownames(dtm), # Vector containing the document names
-    beta = as.matrix(model$expElogbeta), # matrix; logarithmized parameters of the word distribution for each topic
-    gamma = model$inference(chunk = dtm_as_bow(dtm), collect_sstats = FALSE)[[1]], # matrix, parameters of the posterior topic distribution for each document
-    iter = model$iterations
+    beta = matrix(),
+    gamma = matrix(),
+    iter = x$iterations
   )
-})
+  
+  if (verbose) cli_progress_step("assign dictionary (slot 'terms')")
+  ldamodel@terms = as.character(x$id2word$id2token)
+  
+  if (missing(beta)){
+    if (verbose)
+      cli_progress_step("assign word-topic distribution matrix (slot 'beta')")
+    # matrix; logarithmized parameters of the word distribution for each topic
+    ldamodel@beta = as.matrix(x$expElogbeta)
+  }
+  
+  if (missing(gamma)){
+    if (verbose)
+      cli_progress_step("assign topic distribution for each document (slot 'gamma')")
+    # matrix, parameters of the posterior topic distribution for each document
+    ldamodel@gamma = x$inference(chunk = dtm_as_bow(dtm), collect_sstats = FALSE)[[1]]
+  }
+  
+  ldamodel
+}

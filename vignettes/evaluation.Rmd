@@ -43,9 +43,7 @@ instance_list <- corpus("REUTERS") %>%
   split(s_attribute = "id") %>%
   get_token_stream(p_attribute = "word", subset = {!word %in% discard}) %>%
   lapply(tolower) %>%
-  keep(function(x) length(x) >= 50L) %>% # drop short documents
   sapply(stri_c, collapse = "\n") %>%
-  discard(function(x) nchar(x) == 0L) %>% # drop empty documents
   as.instance_list()
 ```
 

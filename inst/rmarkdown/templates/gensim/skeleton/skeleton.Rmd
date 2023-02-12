@@ -68,12 +68,7 @@ if (length(docs_to_drop_length) > 0L) dtm <- dtm[-docs_to_drop_length,]
 # remove noisy words
 noise_to_drop <- noise(colnames(dtm), specialChars = NULL, stopwordsLanguage = language)
 noise_to_drop[["stopwords"]] <- c(
-  noise_to_drop[["stopwords"]],
-  paste(
-    toupper(substr(noise_to_drop[["stopwords"]], 1, 1)),
-    substr(noise_to_drop[["stopwords"]], 2, nchar(noise_to_drop[["stopwords"]])),
-    sep = ""
-  )
+  noise_to_drop[["stopwords"]], capitalize(noise_to_drop[["stopwords"]])
 )
 
 dtm <- dtm[,-which(colnames(dtm) %in% unique(unlist(noise_to_drop)))]

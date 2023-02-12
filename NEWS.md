@@ -14,6 +14,7 @@ Java/Mallet-side normalization when loading the matrix.
 * `instance_list_load()` will check whether file exists.
 * `svmlight()` reports document number at beginning of line.
 * `gensim_ldamodel_as_LDA_Gibbs()` integrated as a `as_LDA()` method.
+* Example Gensim topic model re-calculated with k = 25 (not 250).
 
 # biglda v0.0.1
 

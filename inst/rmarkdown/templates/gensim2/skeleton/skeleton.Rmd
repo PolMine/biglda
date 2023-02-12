@@ -1,0 +1,59 @@
+---
+title: "Template Title"
+author: "Your Name"
+date: "The Date"
+output: output_format
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(polmineR)
+library(biglda)
+library(readr)
+
+docsfile <- tempfile()
+
+docs <- corpus("NADIRASZ") %>%
+  subset(article_date == "2001-09-12") %>%
+  split(s_attribute = "article_id")
+
+docs %>%
+  get_token_stream(p_attribute = "word", collapse = " ") %>%
+  unlist() %>%
+  sprintf("%d %s %s", 0L:(length(docs) - 1L), names(docs), .) %>%
+  write_lines(docsfile)
+```
+
+```{python}
+import gensim
+from gensim.models import LdaMulticore
+from gensim.test.utils import datapath
+
+corpus = gensim.corpora.MalletCorpus(r.docsfile)
+
+model = LdaMulticore(
+    corpus = corpus,
+    id2word = corpus.id2word,
+    chunksize = 2000,
+    alpha = 5,
+    iterations = 50,
+    num_topics = 100,
+    passes = 20,
+    eval_every = None
+)
+
+model.save("/Users/andreasblatte/Lab/tmp/lda_model")
+```
+
+```{r}
+model <- biglda::gensim_ldamodel_load(
+  modeldir = "/Users/andreasblatte/Lab/tmp",
+  modelname = "lda_model"
+)
+
+dtm <- as.DocumentTermMatrix(docs, p_attribute = "word")
+lda <- as_LDA(model, dtm = dtm)
+```

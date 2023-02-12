@@ -2,7 +2,7 @@
 % Please edit documentation in R/gensim.R
 \name{gensim_ldamodel_load}
 \alias{gensim_ldamodel_load}
-\title{Interfacing to gensim}
+\title{Load gensim topic model.}
 \usage{
 gensim_ldamodel_load(modeldir, modelname)
 }
@@ -12,7 +12,7 @@ gensim_ldamodel_load(modeldir, modelname)
 \item{modelname}{Name of a gensim LDA topic model. The data for a model}
 }
 \description{
-Interfacing to gensim
+Load gensim topic model.
 }
 \details{
 Use `gensim_ldamodel_load()` to load an ldamodel computed by gensim.

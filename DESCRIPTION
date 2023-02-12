@@ -14,7 +14,7 @@ License: GPL-3
 Depends:
   R (>= 3.5.0)
 Imports:
-  polmineR,
+  polmineR (>= 0.8.7.9012),
   methods,
   data.table,
   topicmodels,

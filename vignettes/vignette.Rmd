@@ -19,7 +19,7 @@ The purpose of the biglda package is to expose the fast parallelized topic model
 
 ## Installation 
 
-The *biglda* package is a GitHub only package at this stage. You can install is from the GitHub site of the PolMine Project
+The *biglda* package is a GitHub-only package at this stage. You can install is from the GitHub site of the PolMine Project
 
 ```{r, eval = FALSE}
 devtools::install_github("PolMine/biglda")
@@ -55,7 +55,8 @@ The biglda package works seamlessly with the polmineR package. In our example, w
 ```{r}
 library(polmineR)
 use("polmineR")
-speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
+speeches <- corpus("GERMAPARLMINI") %>%
+  as.speeches(s_attribute_name = "speaker", s_attribute_date = "date")
 ```
 
 Before training the topic model, mallet requires that the input data are converted into the mallet input format, an InstanceList.
@@ -64,10 +65,10 @@ Before training the topic model, mallet requires that the input data are convert
 instance_list <- as.instance_list(speeches)
 ```
 
-We now instantiate the ParallelTopicModel class.
+We now instantiate the `BigTopicModel` class.
 
 ```{r}
-lda <- ParallelTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
+lda <- BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 ```
 
 The methods for this class are not defined by the biglda package and are not documented therein, but on the documentation of the mallet api.
@@ -92,7 +93,7 @@ Use the estimate method to trigger the training of the topic model.
 lda$estimate()
 ```
 
-There is a great bandwith of tools available for the LDA topicmodels trained using the topicmoddels package. To be able to use it, use the `as_LDA()` function for type conversion.
+There is a bandwith of tools available for the LDA topicmodels trained using the topicmoddels package. To be able to use it, use the `as_LDA()` function for type conversion.
 
 ```{r}
 topicmodels_lda <- as_LDA(lda)

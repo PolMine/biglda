@@ -2,15 +2,18 @@
 % Please edit documentation in R/gensim.R
 \name{dtm_as_bow}
 \alias{dtm_as_bow}
-\title{Convert DocumentTermMatrix to Gensim corpus.}
+\alias{dtm_as_dictionary}
+\title{Generate Gensim input from R.}
 \usage{
 dtm_as_bow(dtm)
+
+dtm_as_dictionary(dtm)
 }
 \arguments{
-\item{dtm}{A Document-Term-Matrix.}
+\item{dtm}{A `DocumentTermMatrix`.}
 }
 \description{
-Convert DocumentTermMatrix to Gensim corpus.
+Generate Gensim input from R.
 }
 \details{
 The input to gensim's LDA modelling methods is a representation of
@@ -24,10 +27,12 @@ if (requireNamespace("reticulate") && reticulate::py_module_available("gensim"))
   gensim <- reticulate::import("gensim")
   use("RcppCWB", corpus = "REUTERS")
 
-  bow <- corpus("REUTERS") \%>\%
+  dtm <- corpus("REUTERS") \%>\%
     split(s_attribute = "id") \%>\%
-    as.DocumentTermMatrix(p_attribute = "word", verbose = FALSE) \%>\%
-    dtm_as_bow()
+    as.DocumentTermMatrix(p_attribute = "word", verbose = FALSE)
+  
+  bow <- dtm_as_bow(dtm)
+  dict <- dtm_as_dictionary(dtm)
 }   
 }
 \author{

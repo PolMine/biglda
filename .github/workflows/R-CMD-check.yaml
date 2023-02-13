@@ -93,7 +93,7 @@ jobs:
         if: runner.os != 'Windows'
         run: |
           install.packages("remotes")
-          remotes::install_github("PolMine/biglda", ref = "dev")
+          remotes::install_github("PolMine/polmineR", ref = "dev")
         shell: Rscript {0}
 
       - name: Check

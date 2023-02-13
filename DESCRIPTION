@@ -32,13 +32,9 @@ Suggests:
   rmarkdown,
   reticulate,
   RcppCNPy,
-  webshot,
   tm,
-  ggplot2,
   purrr,
-  stringi,
-  reshape2,
-  scales
+  stringi
 SystemRequirements: java
 LinkingTo: Rcpp, RcppArmadillo
 VignetteBuilder: knitr

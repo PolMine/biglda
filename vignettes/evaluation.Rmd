@@ -12,25 +12,38 @@ editor_options:
   chunk_output_type: console
 ---
 
-## Load libraries
-
 ```{r, eval = TRUE}
 library(biglda)
 library(polmineR)
 library(parallel)
 library(purrr)
 library(stringi)
-library(ggplot2)
+```
 
+
+## About
+
+This is a minimal example to demonstrate a workflow for fitting a set of LDA topic
+models, and evaluating the models. Note that given the stochastic nature of 
+LDA topic models, results are different each time this vignett is built.
+
+We use the REUTERS corpus included in the RcppCWB package here to provide a 
+minimal working example.
+
+```{r use_reuters}
 use("RcppCWB", corpus = "REUTERS")
 ```
+
+Given the very limited size of the corpus (`r size(corpus("REUTERS"))` tokens /
+`r length(s_attributes("REUTERS", "id"))` documents) , results obtained here are
+not robust. 
 
 
 ## Settings
 
 ```{r, eval = TRUE}
-if (!mallet_is_installed()) mallet_install()
-cores_to_use <- detectCores() - 1L
+if (!mallet_is_installed()) mallet_install() # install Mallet if necessary
+cores_to_use <- detectCores() - 1L # use all available cores but one
 ```
 
 
@@ -43,7 +56,7 @@ instance_list <- corpus("REUTERS") %>%
   split(s_attribute = "id") %>%
   get_token_stream(p_attribute = "word", subset = {!word %in% discard}) %>%
   lapply(tolower) %>%
-  sapply(stri_c, collapse = "\n") %>%
+  sapply(stri_c, collapse = "\n") %>% # stri_c() is faster than paste0()
   as.instance_list()
 ```
 
@@ -58,8 +71,8 @@ metrics <- lapply(
     BTM <- BigTopicModel(n_topics = k, alpha_sum = 5.1, beta = 0.1)
     BTM$addInstances(instance_list)
     BTM$setNumThreads(cores_to_use)
-    BTM$setTopicDisplay(0L, 0L)
-    BTM$logger$setLevel(rJava::J("java.util.logging.Level")$OFF)
+    BTM$setTopicDisplay(0L, 0L) # no intermediate report on topics
+    BTM$logger$setLevel(rJava::J("java.util.logging.Level")$OFF) # remain silent
     BTM$setNumIterations(1000L)
     BTM$estimate()
     lda <- as_LDA(BTM, verbose = FALSE)
@@ -78,12 +91,41 @@ df <- do.call(rbind, metrics)
 
 ## Plot metrics
 
-```{r}
+This is a minimal version of the much nicer plotting the ldatuning package
+offers. Use ldatuning functionality to obtain a ggplot2 plot.
+
+```{r normalize_metrics}
 for (m in c("cao2009", "arun2010", "deveaud2014")){
   df[[m]] <- (df[[m]] - min(df[[m]])) / max(df[[m]] - min(df[[m]]))
 }
-plot(x = df$k, y = df$cao2009, ylab = "level", xlab = "k", type = "n")
-lines(x = df$k, y = df$cao2009, col = "lightblue", lwd = 2)
-lines(x = df$k, y = df$arun2010, col = "red", lwd = 2)
-lines(x = df$k, y = df$deveaud2014, col = "green", lwd = 2)
+```
+
+```{r metrics_to_minimize, fig.width = 7}
+par(mfrow = c(1,2))
+plot(
+  x = df$k, y = df$cao2009,
+  ylab = "normalized metric", xlab = "k (number of topics)",
+  main = "Metrics to minimize",
+  type = "n"
+)
+lines(x = df$k, y = df$arun2010, col = "steelblue", lwd = 1)
+points(x = df$k, y = df$arun2010, col = "steelblue", pch = 18)
+lines(x = df$k, y = df$cao2009, col = "chartreuse3", lwd = 1)
+points(x = df$k, y = df$cao2009, col = "chartreuse3", pch = 17)
+legend(
+  x = "topleft",
+  legend = c("arun2010", "cao2009"),
+  fill = c("steelblue", "chartreuse3"),
+  cex = 0.5
+)
+
+plot(
+  x = df$k, y = df$cao2009,
+  ylab = "normalized metric", xlab = "k (number of topics)", 
+  main = "Metrics to maximize",
+  type = "n"
+)
+lines(x = df$k, y = df$deveaud2014, col = "coral2", lwd = 1)
+points(x = df$k, y = df$deveaud2014, col = "coral2", pch = 19)
+legend(x = "topright", legend = "deveaud2014", fill = "coral2", cex = 0.5)
 ```

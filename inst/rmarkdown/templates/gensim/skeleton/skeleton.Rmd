@@ -142,7 +142,6 @@ if (as.integer(threads) == 1L){
     per_word_topics = TRUE,
     workers = as.integer(threads) # required to be integer
   )
-  
 }
 ```
 

@@ -1,4 +1,3 @@
 name: Mallet
-description: >
-   A description of the template
+description: Workflow for topic modelling with Mallet
 create_dir: FALSE

@@ -24,7 +24,6 @@ The input to gensim's LDA modelling methods is a representation of
 \examples{
 if (requireNamespace("reticulate") && reticulate::py_module_available("gensim")){
   library(polmineR)
-  gensim <- reticulate::import("gensim")
   use("RcppCWB", corpus = "REUTERS")
 
   dtm <- corpus("REUTERS") \%>\%

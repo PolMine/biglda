@@ -1,7 +1,3 @@
-// javac -cp /opt/mallet/Mallet-202108/class BigTopicModel.java
-// then
-// mv BigTopicModel.class ~/Lab/github/biglda/inst/java/
-
 import cc.mallet.types.*;
 import cc.mallet.topics.*;
 import java.io.IOException;

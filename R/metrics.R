@@ -162,3 +162,48 @@ setMethod("FastArun2010", "jobjRef", function(x){
   FastArun2010(x = beta, gamma = gamma, doclengths = doclengths)
 })
 
+
+#' Get topic model diagnostics.
+#' 
+#' The MALLET topic model toolkit includes a class `TopicModelDiagnostics` able
+#' to prepare a set of metrics on the topics of a topic model. The function
+#' `get_diagnostics()` will return a `data.table` with these
+#' diagnostics. See the [Mallet
+#' documentation](http://mallet.cs.umass.edu/diagnostics.php) for an explanation
+#' of the metrics.
+#' @param x An instance of the RTopicModel class (java object).
+#' @param n An `integer` value, the number of the top words that will be evaluated.
+#' @param verbose A `logical` value, whether to show progress messages.
+#' @return A `data.table`.
+#' @examples 
+#' f <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
+#' model <- mallet_load_topicmodel(f)
+#' diagnostics <- get_diagnostics(model)
+#' head(diagnostics)
+#' @importFrom data.table := rbindlist
+#' @importFrom xml2 read_xml xml_find_all xml_attrs
+get_diagnostics <- function(x, n = 50L, verbose = TRUE){
+  stopifnot(
+    is.numeric(n),
+    is.logical(verbose)
+  )
+  if (x$getClass()$toString() != "class BigTopicModel"){
+    warning("Input expected to be a 'BigTopicModel' Java class object.")
+  }
+  
+  if (verbose) cli_progress_step("instantiate diagnostics class")
+  model_diagnostics <- rJava::.jnew("BigTopicModelDiagnostics", x, as.integer(n))
+  
+  if (verbose) cli_progress_step("retrieve and parse diagnostics")
+  stri <- model_diagnostics$toXML()
+  xml <- xml2::read_xml(stri)
+  nodes <- xml2::xml_find_all(xml, xpath = "/model/topic")
+  dt <- rbindlist(
+    lapply(
+      xml_attrs(nodes),
+      function(x) as.data.table(as.list(setNames(as.numeric(x), names(x))))
+    )
+  )
+  dt[, "id" := as.integer(dt[["id"]])]
+  dt
+}

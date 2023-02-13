@@ -118,3 +118,18 @@ test_that(
 )
 
 
+
+test_that(
+  "Mallet model diagnostics",
+  {
+    # This is a simple, preliminary check: All topics should be covered by
+    # table
+    
+    f <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
+    model <- mallet_load_topicmodel(f)
+    diagnostics <- get_diagnostics(model)
+    expect_identical(model$getNumTopics(), nrow(diagnostics))
+  }
+)
+
+

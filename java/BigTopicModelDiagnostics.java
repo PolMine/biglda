@@ -1,3 +1,8 @@
+// javac -cp /opt/mallet/Mallet-202108/class BigTopicModelDiagnostics.java
+// then
+// mv BigTopicModelDiagnostics.class ~/Lab/github/biglda/inst/java/
+
+
 import java.io.*;
 import java.util.*;
 import java.text.*;
@@ -6,8 +11,7 @@ import cc.mallet.topics.*;
 import cc.mallet.types.*;
 import cc.mallet.util.*;
 
-
-public class RTopicModelDiagnostics extends TopicModelDiagnostics {
+public class BigTopicModelDiagnostics extends TopicModelDiagnostics {
 
   int numTopics;
 	int numTopWords;
@@ -40,7 +44,7 @@ public class RTopicModelDiagnostics extends TopicModelDiagnostics {
 	int numTokens = 0;
 
 
-	public RTopicModelDiagnostics(RTopicModel model, int numTopWords) {
+	public BigTopicModelDiagnostics(BigTopicModel model, int numTopWords) {
 	  super(model, numTopWords);
 	}
 }

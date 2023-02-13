@@ -1,0 +1,6 @@
+# Compile and move these java files as follows.
+
+javac -cp /opt/mallet/Mallet-202108/class BigTopicModel.java BigTopicModelDiagnostics.java
+mv BigTopicModel.class ~/Lab/github/biglda/inst/java/
+mv BigTopicModelDiagnostics.class ~/Lab/github/biglda/inst/java/
+

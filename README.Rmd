@@ -131,6 +131,21 @@ library(biglda)
 
 ### A sample workflow
 
+
+## R Markdown templates for topic modelling
+
+The examples here and in the package documentation including vignettes need to 
+be minimal working examples to keep computing time low when building the package.
+In real-life scenarios, we recommend to use scripts for topic modelling on large
+datasets and to execute the script from the command line. R Markdown are an 
+ideal alternative to plain R scripts that can be run with a shell command such
+as ``.
+
+
+- **Mallet**
+- **Gensim**
+- **Gensim2**
+
 ## Related work
 
 The R package "mallet" has been around for a while and is the traditional

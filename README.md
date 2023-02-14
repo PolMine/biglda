@@ -108,17 +108,36 @@ tar xzfv Mallet-202108-bin.tar.gz
 rm Mallet-202108-bin.tar.gz
 ```
 
-### Installing rJava
+Using Mallet with the interface offered by biglda requires a working
+installation of the rJava package. Unfortunately, it happens indeed that
+installing rJava causes headaches. A solution that works very often is
+to reconfigure the R-Java intervace running the following command on the
+command line.
 
-``` r
+``` sh
 R CMD javareconf
 ```
 
+It goes beyond this introduction to list all potential solutions for
+rJava problems The prospect that Mallet is a very good and efficient
+tool may serve as a motivation.
+
 ### Installing Gensim
+
+The equivalent to rJava as an interface to Java is the reticulate
+package as an interface for running Python commands from R. The
+reticulate package needs to be installed and loaded.
 
 ``` r
 install.packages("reticulate")
 library(reticulate)
+```
+
+The reticulate package typically runs Python within a Conda environment.
+The easiest way is to use `install_miniconda()` and to install Gensim as
+follows.
+
+``` r
 reticulate::install_miniconda()
 reticulate::conda_install(packages = "gensim")
 ```
@@ -126,6 +145,8 @@ reticulate::conda_install(packages = "gensim")
 ## Using biglda
 
 ### Loading biglda
+
+#### Topic modelling with Mallet
 
 Note that it is not possible to use the R packages “biglda” and “mallet”
 in parallel. If “mallet” is loaded, it will put its Java Archive on the
@@ -144,8 +165,6 @@ library(biglda)
     ## Mallet version: v202108
 
     ## JVM memory allocated: 7.1 Gb
-
-### A sample workflow
 
 When using Mallet for topic modelling, the first step is to prepare a
 so-called “instance list” with information on the input documents. In
@@ -180,7 +199,7 @@ core. Note that using multiple cores speeds up topic modelling - see
 performance assessment below.
 
 ``` r
-BTM$setNumIterations(1000L)
+BTM$setNumIterations(100L)
 BTM$setNumThreads(1L)
 ```
 
@@ -203,7 +222,7 @@ BTM$estimate()
 Sys.time() - started
 ```
 
-    ## Time difference of 31.96075 secs
+    ## Time difference of 4.485914 secs
 
 The package includes optimized functionality for evaluating the topic
 model. Metrics are computed as follows.
@@ -219,7 +238,60 @@ data.frame(
 ```
 
     ##   arun2010    cao2009 deveaud2014
-    ## 1 3380.157 0.02694574    3.064358
+    ## 1 3630.858 0.06176298    1.480718
+
+#### Gensim
+
+To use Gensim for topic modelling, first load the reticulate package and
+import gensim into the Python session.
+
+``` r
+library(reticulate)
+gensim <- reticulate::import("gensim")
+```
+
+The bottleneck for using Gensim for topic modelling from R is the
+interface between the R and the Python session. We assume that a
+`DocumentTermMatrix` has been prepared. The biglda package offers the
+functions `dtm_as_bow()` and `dtm_as_dictionary()` to prepare the input
+data structures required by Gensim topic modelling.
+
+``` r
+bow <- dtm_as_bow(AssociatedPress)
+dict <- dtm_as_dictionary(AssociatedPress)
+```
+
+We use the multicore implementation of LDA topic modelling and use all
+cores but two.
+
+``` r
+threads <- parallel::detectCores() - 2L
+```
+
+This is the genuine Python part - running Gensim.
+
+``` r
+gensim_model <- gensim$models$ldamulticore$LdaModel(
+# gensim_model <- gensim$models$ldamulticore$LdaMulticore(
+  corpus = py$corpus,
+  id2word = py$dictionary,
+  num_topics = 100L,
+  iterations = 100L,
+  per_word_topics = FALSE
+#  workers = as.integer(threads) # required to be integer
+)
+```
+
+Use the `as_LDA()` method to get back data from Pyhton/Gensim to R.
+
+``` r
+lda <- as_LDA(gensim_model, dtm = AssociatedPress)
+```
+
+    ## ℹ Insantiate basic LDA_Gensim S4 class✔ Insantiate basic LDA_Gensim S4 class [125ms]
+    ## ℹ assign dictionary (slot 'terms')✔ assign dictionary (slot 'terms') [17ms]
+    ## ℹ assign word-topic distribution matrix (slot 'beta')✔ assign word-topic distribution matrix (slot 'beta') [16ms]
+    ## ℹ assign topic distribution for each document (slot 'gamma')✔ assign topic distribution for each document (slot 'gamma') [12s]
 
 ## Performance
 
@@ -242,7 +314,7 @@ data("AssociatedPress", package = "topicmodels")
 report <- list()
 ```
 
-We then fit topic models with Mallet with a varying number of cores.
+We then fit topic models with Mallet using a increasing number of cores.
 
 ``` r
 library(biglda)
@@ -261,8 +333,9 @@ for (cores in 1L:n_cores_max){
   
   BTM$estimate()
   
-  report[[cores]] <- data.frame(
-    tool = sprintf("mallet_%d", cores),
+  run <- sprintf("mallet_%d", cores)
+  report[[as.character(cores)]] <- data.frame(
+    tool = run,
     time = as.numeric(difftime(Sys.time(), mallet_started, units = "mins"))
   )
 }
@@ -283,7 +356,7 @@ lda_model <- LDA(
   control = list(iter = iterations)
 )
 
-report[[n_cores_max + 1]] <- data.frame(
+report[["topicmodels"]] <- data.frame(
   tool = "topicmodels",
   time = difftime(Sys.time(), topicmodels_started, units = "mins")
 )
@@ -291,25 +364,25 @@ report[[n_cores_max + 1]] <- data.frame(
 
 The following chart reports the elapsed time for LDA topic modelling.
 
-``` r
-library(ggplot2)
-ggplot(data = do.call(rbind, report), aes(x = tool, y = time)) +
-  geom_bar(stat="identity")
-```
-
 ![](README_files/figure-gfm/benchmark_plot-1.png)<!-- -->
 
-So topic modelling with Mallet is fast and even more so with several
-cores. So for large data, biglda can make the difference, whether it
-takes a week or a day for fit the topic model.
+These are the takeaways from the benchmarks:
 
-Note that we did not an evaluation of `stm::stm()` (structural topic
-model) here, which has become a widely used state-of-the-art algorithm.
-The stm package offers very rich analytical possibilities and the
-ability to include document metadata goes significantly beyond classic
-LDA topic modelling. But `stm::stm()` is significantly slower than
-`topicmodels::LDA()`. The stm package does not address big data
-scenarios very well, this is the specialization of the biglda package.
+- Topic modelling with Mallet is fast and even more so with several
+  cores. So for large data, biglda can make the difference, whether it
+  takes a week or a day for fit the topic model.
+
+- Note that we did not an evaluation of `stm::stm()` (structural topic
+  model) here, which has become a widely used state-of-the-art
+  algorithm. The stm package offers very rich analytical possibilities
+  and the ability to include document metadata goes significantly beyond
+  classic LDA topic modelling. But `stm::stm()` is significantly slower
+  than `topicmodels::LDA()`. The stm package does not address big data
+  scenarios very well, this is the specialization of the biglda package.
+
+- The great reputation of Gensim notwithstanding, benchmarks for Gensim
+  are significantly weaker than what we see for mallet and topicmodels.
+  The reticulate interface may be the bottleneck: We do not yet know.
 
 ### Metrics
 

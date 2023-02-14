@@ -114,6 +114,15 @@ rm Mallet-202108-bin.tar.gz
 R CMD javareconf
 ```
 
+### Installing Gensim
+
+``` r
+install.packages("reticulate")
+library(reticulate)
+reticulate::install_miniconda()
+reticulate::conda_install(packages = "gensim")
+```
+
 ## Using biglda
 
 ### Loading biglda
@@ -137,6 +146,80 @@ library(biglda)
     ## JVM memory allocated: 7.1 Gb
 
 ### A sample workflow
+
+When using Mallet for topic modelling, the first step is to prepare a
+so-called “instance list” with information on the input documents. In
+this example, we use the `AssociatedPress` dataset included in the
+topicmodels package.
+
+``` r
+data("AssociatedPress", package = "topicmodels")
+instance_list <- as.instance_list(AssociatedPress, verbose = FALSE)
+```
+
+We then instantiate a `BigTopicModel` class object with hyperparameters.
+This class is a super class of the `ParallelTopicModel` class, the
+efficient worker of Mallet topic modelling. The superclass adds methods
+to this class that greatly speed up transferring data at the R-Java
+interface.
+
+``` r
+BTM <- BigTopicModel(n_topics = 100L, alpha_sum = 5.1, beta = 0.1)
+```
+
+This result (object `BTM`) is a Java object of class “jobjRef”. Methods
+of this (Java) class are accessible from R, and are used to configure
+the topic modelling engine. The first step is to add the instance list.
+
+``` r
+BTM$addInstances(instance_list)
+```
+
+We then set the number of iterations to 1000 and just use one thread
+core. Note that using multiple cores speeds up topic modelling - see
+performance assessment below.
+
+``` r
+BTM$setNumIterations(1000L)
+BTM$setNumThreads(1L)
+```
+
+Finally, we control the verbosity of the engine. By default, Mallet
+issues a status message every 10 iterations and reports the top words
+for topics every 100 iterations. For the purpose of rendering this
+document, we turn these progress reports off.
+
+``` r
+BTM$setTopicDisplay(0L, 0L) # no intermediate report on topics
+BTM$logger$setLevel(rJava::J("java.util.logging.Level")$OFF) # remain silent
+```
+
+We now fit the topic model and report the time that has elapsed for
+fitting the model.
+
+``` r
+started <- Sys.time()
+BTM$estimate()
+Sys.time() - started
+```
+
+    ## Time difference of 31.96075 secs
+
+The package includes optimized functionality for evaluating the topic
+model. Metrics are computed as follows.
+
+``` r
+lda <- as_LDA(BTM, verbose = FALSE)
+N <- BTM$getDocLengthCounts()
+data.frame(
+  arun2010 = BigArun2010(beta = B(lda), gamma = G(lda), doclengths = N),
+  cao2009 = BigCao2009(X = B(lda)),
+  deveaud2014 = BigDeveaud2014(beta = B(lda))
+)
+```
+
+    ##   arun2010    cao2009 deveaud2014
+    ## 1 3380.157 0.02694574    3.064358
 
 ## Performance
 

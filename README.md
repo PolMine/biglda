@@ -144,9 +144,10 @@ To convey that biglda is fast, we fit topic models with Mallet with
 different numbers of cores and compare computing time with topic
 modelling with `topicmodels::LDA()`. The corpus used is
 `AssociatedPress` as represented by a `DocumentTermMatrix` included in
-the `topicmodel` package. Here, we just run 100 iterations for a `k` of
-100 topics. In “real life”, you would have more iterations (typically
-1000-2000), but this setup is sufficiently informative on performance.
+the `topicmodel` package. Here, we just run 100 iterations for a limited
+set of `k` topics. In “real life”, you would have more iterations
+(typically 1000-2000), but this setup is sufficiently informative on
+performance.
 
 So we start with the general settings.
 
@@ -226,6 +227,45 @@ ability to include document metadata goes significantly beyond classic
 LDA topic modelling. But `stm::stm()` is significantly slower than
 `topicmodels::LDA()`. The stm package does not address big data
 scenarios very well, this is the specialization of the biglda package.
+
+### Metrics
+
+The package implements the metrics for topic models of the ldatuning
+package (Griffiths2004 still missing) using RcppArmadillo. Based on the
+following code used for benchmarking, the following chart conveys that
+the biglda funtions `BigArun2010()`, `BigCao2009()` and
+`BigDeveaud2014()` are significantly faster than their counterparts in
+the ldatuning package.
+
+``` r
+library(ldatuning)
+
+metrics_timing <- data.frame(
+  pkg = c(rep("ldatuning", times = 3), rep("biglda", times = 3)),
+  metric = c(rep(c("Arun2010", "CaoJuan2009", "Deveaud2009"), times = 2)),
+  time = c(
+    system.time(Arun2010(models = list(lda_model), dtm = AssociatedPress))[3],
+    system.time(CaoJuan2009(models = list(lda_model)))[3],
+    system.time(Deveaud2014(models = list(lda_model)))[3],
+    system.time(BigArun2010(
+      beta = B(lda_model),
+      gamma = G(lda_model),
+      doclengths = BTM$getDocLengthCounts()))[3],
+    system.time(BigCao2009(B(lda_model)))[3],
+    system.time(BigDeveaud2014(B(lda_model)))[3]
+  )
+)
+
+ggplot(metrics_timing, aes(fill = pkg, y = time, x = metric)) + 
+    geom_bar(position = "dodge", stat = "identity")
+```
+
+![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+
+Note that apart from speed, the RcppArmadillo/C++ implementation is much
+more memory efficient. Computations of metrics that may fail with
+ldatuning functionality because memory is exhausted will often work fast
+and successfully with the biglda package.
 
 ## R Markdown templates for topic modelling
 

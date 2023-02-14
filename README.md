@@ -260,7 +260,7 @@ ggplot(metrics_timing, aes(fill = pkg, y = time, x = metric)) +
     geom_bar(position = "dodge", stat = "identity")
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-1-1.png)<!-- -->
+![](README_files/figure-gfm/benchmark_metrics-1.png)<!-- -->
 
 Note that apart from speed, the RcppArmadillo/C++ implementation is much
 more memory efficient. Computations of metrics that may fail with

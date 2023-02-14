@@ -3,6 +3,7 @@
 \name{as.instance_list}
 \alias{as.instance_list}
 \alias{as.instance_list,partition_bundle-method}
+\alias{as.instance_list,DocumentTermMatrix-method}
 \alias{as.instance_list,list-method}
 \alias{as.instance_list,character-method}
 \alias{instance_list_save}
@@ -13,7 +14,9 @@ as.instance_list(x, ...)
 
 \S4method{as.instance_list}{partition_bundle}(x, p_attribute = "word", verbose = TRUE, min_length = 1L, ...)
 
-\S4method{as.instance_list}{list}(x, corpus, p_attribute = "word")
+\S4method{as.instance_list}{DocumentTermMatrix}(x, verbose = TRUE)
+
+\S4method{as.instance_list}{list}(x, vocabulary)
 
 \S4method{as.instance_list}{character}(x, regex = "[\\\\p{L}]+", tolower = FALSE, stopwords = NULL)
 
@@ -22,19 +25,19 @@ instance_list_save(x, filename = tempfile())
 instance_list_load(filename)
 }
 \arguments{
-\item{x}{A \code{partition_bundle} object.}
+\item{x}{A `partition_bundle` object.}
 
 \item{...}{Arguments passed into `get_token_stream()` call (e.g. argument
 `subset` to apply stopwords).}
 
-\item{p_attribute}{The p_attribute to use, typically "word" or "lemma".}
+\item{p_attribute}{Length-one `character` vector, a positional attribute.}
 
-\item{verbose}{A \code{logical} value, whether to be verbose.}
+\item{verbose}{A `logical` value, whether to be verbose.}
 
 \item{min_length}{Minimum length of documents after removing stopwords.}
 
-\item{corpus}{A CWB indexed corpus, defined either by corpus ID, or
-\code{corpus} object.}
+\item{vocabulary}{A `character` vector with the vocabulary underlying input 
+object `x`, in the correct order.}
 
 \item{regex}{A regular expression (length-one `character` vector) used by
 Mallet Java code for splitting `character` vector into tokens.}
@@ -101,9 +104,16 @@ speeches_instance_list <- as.instance_list(
   p_attribute = "word",
   subset = {!get(p_attribute) \%in\% bquote(.(terms_to_drop))}
 )
-speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
-id_list <- p_attributes(speeches, p_attribute = "word", decode = FALSE)
-instance_list <- as.instance_list(id_list, corpus = "GERMAPARLMINI", p_attribute = "word")
+data("AssociatedPress", package = "topicmodels")
+il <- as.instance_list(AssociatedPress)
+use("polmineR", corpus = "GERMAPARLMINI")
+
+vocab <- p_attributes("GERMAPARLMINI", p_attribute = "word")
+
+id_list <- corpus("GERMAPARLMINI") |>
+  as.speeches(s_attribute_name = "speaker", s_attribute_date = "date") |>
+  p_attributes(p_attribute = "word", decode = FALSE)
+instance_list <- as.instance_list(id_list, vocabulary = vocab)
 instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date") \%>\%
   get_token_stream(p_attribute = "word", collapse = " ") \%>\% 
   unlist() \%>\%

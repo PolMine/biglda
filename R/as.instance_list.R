@@ -6,12 +6,10 @@
 #' turn ParallelTopicModel Java object into \code{LDA_Gibbs} object from
 #' package \code{topicmodels}.
 #' 
-#' @param x A \code{partition_bundle} object.
-#' @param corpus A CWB indexed corpus, defined either by corpus ID, or
-#'   \code{corpus} object.
+#' @param x A `partition_bundle` object.
+#' @param p_attribute Length-one `character` vector, a positional attribute.
 #' @param ... further parameters
-#' @param p_attribute The p_attribute to use, typically "word" or "lemma".
-#' @param verbose A \code{logical} value, whether to be verbose.
+#' @param verbose A `logical` value, whether to be verbose.
 #' @param filename Where to store the Java-object.
 #' @importFrom utils read.csv read.table
 #' @importFrom stats setNames
@@ -137,16 +135,67 @@ setMethod("as.instance_list", "partition_bundle", function(x, p_attribute = "wor
 })
 
 
+setOldClass("DocumentTermMatrix")
+
+#' @exportMethod as.instance_list
+#' @rdname as.instance_list
+#' @examples
+#' data("AssociatedPress", package = "topicmodels")
+#' il <- as.instance_list(AssociatedPress)
+setMethod("as.instance_list", "DocumentTermMatrix", function(x, verbose = TRUE){
+  
+  stopifnot(is.logical(verbose))
+  if (is.null(dimnames(x)[["Terms"]])) stop("dimnames need to define Terms")
+  
+  if (is.null(dimnames(x)[["Docs"]])){
+    docnames <- as.character(1L:nrow(x))
+  } else {
+    docnames <- dimnames(x)[["Docs"]]
+  }
+
+  if (verbose) cli_progress_step("reconstruct individual tokens from matrix")
+  j_split <- split(x = x$j - 1L, f = x$i)
+  v_split <- split(x = x$v, f = x$i)
+  unbagged <- lapply(
+    seq_along(j_split),
+    function(i) unlist(Map(rep, j_split[[i]], v_split[[i]]), recursive = FALSE)
+  )
+  if (verbose) cli_progress_done()
+  
+  as.instance_list(
+    x = unbagged,
+    vocabulary = dimnames(x)[["Terms"]],
+    docnames = docnames
+  )
+})
+
+#' @param vocabulary A `character` vector with the vocabulary underlying input 
+#'   object `x`, in the correct order.
 #' @examples 
-#' speeches <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
-#' id_list <- p_attributes(speeches, p_attribute = "word", decode = FALSE)
-#' instance_list <- as.instance_list(id_list, corpus = "GERMAPARLMINI", p_attribute = "word")
+#' use("polmineR", corpus = "GERMAPARLMINI")
+#' 
+#' vocab <- p_attributes("GERMAPARLMINI", p_attribute = "word")
+#' 
+#' id_list <- corpus("GERMAPARLMINI") |>
+#'   as.speeches(s_attribute_name = "speaker", s_attribute_date = "date") |>
+#'   p_attributes(p_attribute = "word", decode = FALSE)
+#'   
+#' instance_list <- as.instance_list(
+#'   id_list,
+#'   vocabulary = vocab,
+#'   docnames = names(id_list)
+#' )
 #' @rdname as.instance_list
 #' @exportMethod as.instance_list
-setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
+setMethod("as.instance_list", "list", function(x, vocabulary, docnames){
   
-  lexicon <- rJava::.jnew("cc/mallet/types/Alphabet", rJava::.jnew("java/lang/String")$getClass())
-  dummy <- lexicon$lookupIndices(p_attributes(corpus, p_attribute = p_attribute), TRUE)
+  stopifnot(length(x) == length(docnames))
+  
+  lexicon <- rJava::.jnew(
+    "cc/mallet/types/Alphabet",
+    rJava::.jnew("java/lang/String")$getClass()
+  )
+  lexicon$lookupIndices(vocabulary, TRUE)
   
   # Create a dummy instance with a target.
   
@@ -159,22 +208,11 @@ setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
   )
   target$setData(.jnew("cc/mallet/types/FeatureSequence", lexicon))
   
-  instance <- .jnew(
-    "cc.mallet.types.Instance",
-    .jnew("java.lang.Object"),
-    .jnew("java.lang.Object"),
-    .jnew("java.lang.Object"),
-    .jnew("java.lang.Object")
-  )
-  instance$setTarget(target)
-  
-  # Create InstanceList.
-  
   instance_list <- rJava::.jnew("cc/mallet/types/InstanceList", lexicon, lexicon)
   dummy <- pblapply(
-    x,
-    function(ids){
-      feature_sequence <- .jnew("cc/mallet/types/FeatureSequence", lexicon, ids)
+    seq_along(x),
+    function(i){
+      feature_sequence <- .jnew("cc/mallet/types/FeatureSequence", lexicon, x[[i]])
       instance <- .jnew(
         "cc.mallet.types.Instance",
         .jnew("java.lang.Object"),
@@ -183,14 +221,16 @@ setMethod("as.instance_list", "list", function(x, corpus, p_attribute = "word"){
         .jnew("java.lang.Object")
       )
       instance$setTarget(target)
-      # if (instance$isLocked()) instance$unLock()
       instance$setData(feature_sequence)
+      instance$setName(.jnew("java/lang/String", docnames[[i]]))
       instance_list$add(instance)
       invisible(NULL)
     }
   )
   instance_list
 })
+
+
 
 
 #' @param regex A regular expression (length-one `character` vector) used by

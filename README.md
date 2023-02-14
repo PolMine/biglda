@@ -34,6 +34,11 @@ the different relevant stages when working with topic models:
   topic modelling to be able to fit a set of topic models within
   reasonable time.
 
+- *To cost of interfacing*: R is very productive for developing your
+  analysis, but the best implementations of LDA topic modelling are
+  written in Python, Java and C. Transferring the data between
+  programming languages is a potential bottleneck and can be quite slow.
+
 - *Evaluating topic models*: Issues performance and memory efficiency
   are relevant when computing indicators to assess topic models may be
   considerable. Computations require mathematical operations with really
@@ -132,6 +137,108 @@ library(biglda)
     ## JVM memory allocated: 7.1 Gb
 
 ### A sample workflow
+
+## Performance
+
+To convey that biglda is fast, we fit topic models with Mallet with
+different numbers of cores and compare computing time with topic
+modelling with `topicmodels::LDA()`. The corpus used is
+`AssociatedPress` as represented by a `DocumentTermMatrix` included in
+the `topicmodel` package. Here, we just run 100 iterations for a `k` of
+100 topics. In “real life”, you would have more iterations (typically
+1000-2000), but this setup is sufficiently informative on performance.
+
+So we start with the general settings.
+
+``` r
+k <- 100L
+iterations <- 100L
+n_cores_max <- parallel::detectCores() - 2L # use all cores but two
+data("AssociatedPress", package = "topicmodels")
+report <- list()
+```
+
+We then fit topic models with Mallet with a varying number of cores.
+
+``` r
+library(biglda)
+
+instance_list <- as.instance_list(AssociatedPress, verbose = FALSE)
+
+for (cores in 1L:n_cores_max){
+  mallet_started <- Sys.time()
+
+  BTM <- BigTopicModel(n_topics = k, alpha_sum = 5.1, beta = 0.1)
+  BTM$addInstances(instance_list)
+  BTM$setNumThreads(cores)
+  BTM$setNumIterations(iterations)
+  BTM$setTopicDisplay(0L, 0L) # no intermediate report on topics
+  BTM$logger$setLevel(rJava::J("java.util.logging.Level")$OFF) # remain silent
+  
+  BTM$estimate()
+  
+  report[[cores]] <- data.frame(
+    tool = sprintf("mallet_%d", cores),
+    time = as.numeric(difftime(Sys.time(), mallet_started, units = "mins"))
+  )
+}
+```
+
+And we run the classic implementation of LDA topic topic modelling in
+the topicmodels package.
+
+``` r
+library(topicmodels)
+
+topicmodels_started <- Sys.time()
+
+lda_model <- LDA(
+  AssociatedPress,
+  k = k,
+  method = "Gibbs",
+  control = list(iter = iterations)
+)
+
+report[[n_cores_max + 1]] <- data.frame(
+  tool = "topicmodels",
+  time = difftime(Sys.time(), topicmodels_started, units = "mins")
+)
+```
+
+The following chart reports the elapsed time for LDA topic modelling.
+
+``` r
+library(ggplot2)
+ggplot(data = do.call(rbind, report), aes(x = tool, y = time)) +
+  geom_bar(stat="identity")
+```
+
+![](README_files/figure-gfm/benchmark_plot-1.png)<!-- -->
+
+So topic modelling with Mallet is fast and even more so with several
+cores. So for large data, biglda can make the difference, whether it
+takes a week or a day for fit the topic model.
+
+Note that we did not an evaluation of `stm::stm()` (structural topic
+model) here, which has become a widely used state-of-the-art algorithm.
+The stm package offers very rich analytical possibilities and the
+ability to include document metadata goes significantly beyond classic
+LDA topic modelling. But `stm::stm()` is significantly slower than
+`topicmodels::LDA()`. The stm package does not address big data
+scenarios very well, this is the specialization of the biglda package.
+
+## R Markdown templates for topic modelling
+
+The examples here and in the package documentation including vignettes
+need to be minimal working examples to keep computing time low when
+building the package. In real-life scenarios, we recommend to use
+scripts for topic modelling on large datasets and to execute the script
+from the command line. R Markdown are an ideal alternative to plain R
+scripts that can be run with a shell command such as \`\`.
+
+- **Mallet**
+- **Gensim**
+- **Gensim2**
 
 ## Related work
 

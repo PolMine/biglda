@@ -6,13 +6,15 @@ library(rJava)
 test_that(
   "",
   {
-    speeches <- polmineR::as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date")
+    use("polmineR", corpus = "GERMAPARLMINI")
+    speeches <- corpus("GERMAPARLMINI") %>%
+      as.speeches(s_attribute_name = "speaker", s_attribute_date = "date")
     
-    
-    instance_list1 <- as.instance_list(speeches, p_attribute = "word")
+    instance_list1 <- as.instance_list(speeches, p_attribute = "word", verbose = FALSE)
 
     id_list <- get_token_stream(speeches, p_attribute = "word", decode = FALSE)
-    instance_list2 <- as.instance_list(id_list, corpus = "GERMAPARLMINI")
+    vocab <- p_attributes("GERMAPARLMINI", p_attribute = "word")
+    instance_list2 <- as.instance_list(id_list, vocabulary = vocab)
 
     expect_identical(instance_list1$size(), instance_list2$size())
     

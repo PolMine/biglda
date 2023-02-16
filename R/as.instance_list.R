@@ -30,9 +30,9 @@
 #' )
 #' 
 #' instance_list <- as.instance_list(speeches)
-#' lda <- ParallelTopicModel(25, 5.1, 0.1)
+#' lda <- BigTopicModel(25, 5.1, 0.1)
 #' lda$addInstances(instance_list)
-#' # lda$getDocLengthCounts()
+#' lda$getDocLengthCounts()
 #' lda$setNumThreads(1L)
 #' lda$setTopicDisplay(50L, 10L)
 #' destfile <- tempfile()
@@ -171,23 +171,36 @@ setMethod("as.instance_list", "DocumentTermMatrix", function(x, verbose = TRUE){
 
 #' @param vocabulary A `character` vector with the vocabulary underlying input 
 #'   object `x`, in the correct order.
+#' @param docnames A `character` vector with document names. Needs to have same
+#'   length as input `list` object. If missing, names of the input `list` are 
+#'   used as docnames, if present.
+#' @param progress A `logical` value, whether to show progress bar.
 #' @examples 
 #' use("polmineR", corpus = "GERMAPARLMINI")
 #' 
 #' vocab <- p_attributes("GERMAPARLMINI", p_attribute = "word")
 #' 
-#' id_list <- corpus("GERMAPARLMINI") |>
+#' il <- corpus("GERMAPARLMINI") |>
 #'   as.speeches(s_attribute_name = "speaker", s_attribute_date = "date") |>
-#'   p_attributes(p_attribute = "word", decode = FALSE)
-#'   
-#' instance_list <- as.instance_list(
-#'   id_list,
-#'   vocabulary = vocab,
-#'   docnames = names(id_list)
-#' )
+#'   p_attributes(p_attribute = "word", decode = FALSE) |>
+#'   as.instance_list(vocabulary = vocab)
 #' @rdname as.instance_list
 #' @exportMethod as.instance_list
-setMethod("as.instance_list", "list", function(x, vocabulary, docnames){
+setMethod("as.instance_list", "list", function(x, vocabulary, docnames, verbose = TRUE, progress = TRUE){
+  
+  stopifnot(
+    length(verbose) == 1, is.logical(verbose),
+    length(progress) == 1, is.logical(progress)
+  )
+  
+  if (missing(docnames)){
+    if (is.null(names(x))){
+      stop("Argument `docnames` missing and input list is not named.")
+    } else {
+      if (verbose) cli_alert_info("argument `docnames`, using names of input `list`.")
+      docnames <- names(x)
+    }
+  }
   
   stopifnot(length(x) == length(docnames))
   
@@ -209,24 +222,23 @@ setMethod("as.instance_list", "list", function(x, vocabulary, docnames){
   target$setData(.jnew("cc/mallet/types/FeatureSequence", lexicon))
   
   instance_list <- rJava::.jnew("cc/mallet/types/InstanceList", lexicon, lexicon)
-  dummy <- pblapply(
-    seq_along(x),
-    function(i){
-      feature_sequence <- .jnew("cc/mallet/types/FeatureSequence", lexicon, x[[i]])
-      instance <- .jnew(
-        "cc.mallet.types.Instance",
-        .jnew("java.lang.Object"),
-        .jnew("java.lang.Object"),
-        .jnew("java.lang.Object"),
-        .jnew("java.lang.Object")
-      )
-      instance$setTarget(target)
-      instance$setData(feature_sequence)
-      instance$setName(.jnew("java/lang/String", docnames[[i]]))
-      instance_list$add(instance)
-      invisible(NULL)
-    }
-  )
+  .fn <- function(i){
+    feature_sequence <- .jnew("cc/mallet/types/FeatureSequence", lexicon, x[[i]])
+    instance <- .jnew(
+      "cc.mallet.types.Instance",
+      .jnew("java.lang.Object"),
+      .jnew("java.lang.Object"),
+      .jnew("java.lang.Object"),
+      .jnew("java.lang.Object")
+    )
+    instance$setTarget(target)
+    instance$setData(feature_sequence)
+    instance$setName(.jnew("java/lang/String", docnames[[i]]))
+    instance_list$add(instance)
+    invisible(NULL)
+  }
+  if (progress) pblapply(seq_along(x), .fn) else lapply(seq_along(x), .fn)
+  
   instance_list
 })
 

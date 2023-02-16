@@ -16,7 +16,7 @@ as.instance_list(x, ...)
 
 \S4method{as.instance_list}{DocumentTermMatrix}(x, verbose = TRUE)
 
-\S4method{as.instance_list}{list}(x, vocabulary)
+\S4method{as.instance_list}{list}(x, vocabulary, docnames, verbose = TRUE, progress = TRUE)
 
 \S4method{as.instance_list}{character}(x, regex = "[\\\\p{L}]+", tolower = FALSE, stopwords = NULL)
 
@@ -38,6 +38,12 @@ instance_list_load(filename)
 
 \item{vocabulary}{A `character` vector with the vocabulary underlying input 
 object `x`, in the correct order.}
+
+\item{docnames}{A `character` vector with document names. Needs to have same
+length as input `list` object. If missing, names of the input `list` are 
+used as docnames, if present.}
+
+\item{progress}{A `logical` value, whether to show progress bar.}
 
 \item{regex}{A regular expression (length-one `character` vector) used by
 Mallet Java code for splitting `character` vector into tokens.}
@@ -77,9 +83,9 @@ speeches <- polmineR::as.speeches(
 )
 
 instance_list <- as.instance_list(speeches)
-lda <- ParallelTopicModel(25, 5.1, 0.1)
+lda <- BigTopicModel(25, 5.1, 0.1)
 lda$addInstances(instance_list)
-# lda$getDocLengthCounts()
+lda$getDocLengthCounts()
 lda$setNumThreads(1L)
 lda$setTopicDisplay(50L, 10L)
 destfile <- tempfile()
@@ -110,10 +116,10 @@ use("polmineR", corpus = "GERMAPARLMINI")
 
 vocab <- p_attributes("GERMAPARLMINI", p_attribute = "word")
 
-id_list <- corpus("GERMAPARLMINI") |>
+il <- corpus("GERMAPARLMINI") |>
   as.speeches(s_attribute_name = "speaker", s_attribute_date = "date") |>
-  p_attributes(p_attribute = "word", decode = FALSE)
-instance_list <- as.instance_list(id_list, vocabulary = vocab)
+  p_attributes(p_attribute = "word", decode = FALSE) |>
+  as.instance_list(vocabulary = vocab)
 instances <- as.speeches("GERMAPARLMINI", s_attribute_name = "speaker", s_attribute_date = "date") \%>\%
   get_token_stream(p_attribute = "word", collapse = " ") \%>\% 
   unlist() \%>\%

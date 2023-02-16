@@ -1,3 +1,45 @@
+#' Evaluate topic model.
+#' @param x Input object of class inheriting from `TopicModel`.
+#' @param verbose A `logical` value, whether to output progress messages.
+#' @param ... Further arguments (unused).
+#' @exportMethod metrics
+#' @docType methods
+#' @rdname metrics
+setGeneric("metrics", function(x, ...) standardGeneric("metrics") )
+
+#' @examples 
+#' lda <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
+#'   mallet_load_topicmodel() |>
+#'   as_LDA()
+#' metrics(lda)
+#' 
+#' @rdname metrics
+setMethod("metrics", signature = "TopicModel", function(x, verbose = TRUE){
+  
+  stopifnot(
+    length(verbose) == 1L, is.logical(verbose)
+  )
+  
+  if (verbose) cli_progress_step("calculating cao2009")
+  cao <- BigCao2009(X = B(x))
+  
+  if (verbose) cli_progress_step("calculating arun2010")
+  arun <- BigArun2010(beta = B(x), gamma = G(x), doclengths = x@doclengths)
+  
+  if (verbose) cli_progress_step("calculating deveaud2014")
+  deveaud <- BigDeveaud2014(beta = B(x))
+  
+  retval <- data.frame(
+    k = x@k,
+    cao2009 = cao,
+    arun2010 = arun,
+    deveaud2014 = deveaud
+  )
+  
+  class(retval) <- c("metrics", class(retval))
+  retval
+})
+
 #' Fast Implementation of Cao et al. 2009
 #' 
 #' The function picks up the suggestion of Cao et al. 2009 for a density-based 

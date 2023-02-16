@@ -8,3 +8,9 @@
 \description{
 LDA Mallet Class.
 }
+\section{Slots}{
+
+\describe{
+\item{\code{doclengths}}{An `integer` vector with document lengths.}
+}}
+

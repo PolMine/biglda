@@ -15,6 +15,10 @@ Java/Mallet-side normalization when loading the matrix.
 * `svmlight()` reports document number at beginning of line.
 * `gensim_ldamodel_as_LDA_Gibbs()` integrated as a `as_LDA()` method.
 * Example Gensim topic model re-calculated with k = 25 (not 250).
+* Slot `doclengths` added to (S4) class `LDA_Gibbs` to avoid having to reload
+instance list for computing metrics.
+* `as_LDA()` will now fill slot `doclenghts` of output object.
+* `as_LDA()` has been rewritten to improve memory efficiency somewhat.
 
 # biglda v0.0.1
 

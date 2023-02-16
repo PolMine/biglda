@@ -41,6 +41,7 @@ double BigArun2010(const arma::mat & beta, const arma::mat & gamma, arma::vec do
 
 
 //' @rdname rcppmetrics
+//' @references \url{https://dn.revuesonline.com/gratuit/DN17_1_06_Deveau.pdf}
 // [[Rcpp::export]]
 double BigDeveaud2014(const arma::mat & beta) {
   

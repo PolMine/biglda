@@ -14,7 +14,11 @@ test_that(
 
     id_list <- get_token_stream(speeches, p_attribute = "word", decode = FALSE)
     vocab <- p_attributes("GERMAPARLMINI", p_attribute = "word")
-    instance_list2 <- as.instance_list(id_list, vocabulary = vocab)
+    instance_list2 <- as.instance_list(
+      id_list,
+      vocabulary = vocab,
+      docnames = names(id_list)
+    )
 
     expect_identical(instance_list1$size(), instance_list2$size())
     

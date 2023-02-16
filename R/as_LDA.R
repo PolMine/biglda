@@ -3,7 +3,8 @@
 #' @importClassesFrom topicmodels TopicModel LDA LDA_Gibbscontrol
 #' @exportClass LDA_Mallet
 #' @rdname LDA_classes
-setClass("LDA_Mallet", contains = "LDA")
+#' @slot doclengths An `integer` vector with document lengths.
+setClass("LDA_Mallet", slots = c(doclengths = "integer"), contains = "LDA")
 
 
 #' @rdname LDA_classes
@@ -65,49 +66,55 @@ as_LDA.jobjRef <- function(x, beta, gamma, dtm, verbose = TRUE, ...){
   
   if (length(list(...)) > 0L) warning("Three dots (...) unused in as_LDA.jobjRef() ")
   
+  if (verbose) cli_progress_step("instantiate LDA_Gibbs class")
+  y <- new(
+    "LDA_Mallet",
+    k = x$getNumTopics(),
+    iter = x$numIterations,
+    control = new("LDA_Gibbscontrol")
+  )
+
   if (verbose) cli_progress_step("get number of documents and number of terms")
-  dimensions <- c(
+  y@Dim <- c(
     x$data$size(), # Number of documents
     x$getAlphabet()$size() # Number of terms
   )
-  if (verbose) cli_alert_info("number of docs: {.val {dimensions[1]}} / number of terms: {.val {dimensions[2]}}")
+  if (verbose) cli_alert_info("number of docs: {.val {y@Dim[1]}} / number of terms: {.val {y@Dim[2]}}")
+  
+  if (verbose) cli_progress_step("get document lengths")
+  y@doclengths <- x$getDocLengthCounts()
+  if (verbose) cli_progress_done()
+  if (verbose) cli_alert_info("length of doclength vector: {.val {length(y@doclengths)}} (total: {.val {sum(y@doclengths)}}")
+  if (length(y@doclengths) != y@Dim[1])
+    warning(
+      sprintf(
+        "number of docs retrieved is %d but length of doclength vector is %d",
+        y@Dim[1], length(y@doclengths)
+      )
+    )
   
   if (verbose) cli_progress_step("getting alphabet")
-  alphabet <- strsplit(x$getAlphabet()$toString(), "\n")[[1]]
+  y@terms <- strsplit(x$getAlphabet()$toString(), "\n")[[1]]
   cli_progress_done()
-  if (verbose) cli_alert_info("alphabet length: {.val {length(alphabet)}}")
+  if (verbose) cli_alert_info("alphabet length: {.val {length(y@terms)}}")
   
   if (verbose) cli::cli_progress_step("getting document names")
-  docs <- x$getDocumentNames()
+  y@documents <- x$getDocumentNames()
   cli_progress_done()
-  if (verbose) cli_alert_info("number of document names: {.val {length(docs)}}")
+  if (verbose) cli_alert_info("number of document names: {.val {length(y@documents)}}")
   
   if (missing(gamma)){
+    # A matrix; logarithmized parameters of the word distribution for each topic
     if (verbose) cli_progress_step("getting topic probabilities (gamma matrix)")
-    gamma <- rJava::.jevalArray(x$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
+    y@gamma <- rJava::.jevalArray(x$getDocumentTopics(TRUE, TRUE), simplify = TRUE)
   }
   
   if (missing(beta)){
     if (verbose) cli_progress_step("getting topic word weights (beta matrix)")
-    beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
-    beta <- log(beta)
+    y@beta <- rJava::.jevalArray(x$getTopicWords(TRUE, TRUE), simplify = TRUE) 
+    y@beta <- log(y@beta)
   }
-  
-  if (verbose) cli_progress_step("instantiate LDA_Gibbs class")
-  y <- new(
-    "LDA_Mallet",
-    Dim = dimensions,
-    k = x$getNumTopics(),
-    terms = alphabet,
-    documents = docs, # Vector containing the document names
-    beta = beta, # A matrix; logarithmized parameters of the word distribution for each topic
-    gamma = gamma, # matrix, parameters of the posterior topic distribution for each document
-    iter = x$numIterations,
-    control = new("LDA_Gibbscontrol")
-  )
-  
-  # dirty hack to compensate that the LDA_Gibbs class is not exported
-  attr(attr(y, "class"), "package") <- "topicmodels" 
+
   y
 }
 

@@ -24,3 +24,6 @@ BigDeveaud2014(beta)
 \description{
 RcppArmadillo implementation of topic model metrics
 }
+\references{
+\url{https://dn.revuesonline.com/gratuit/DN17_1_06_Deveau.pdf}
+}

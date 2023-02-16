@@ -18,6 +18,7 @@ BigArun2010 <- function(beta, gamma, doclengths) {
 }
 
 #' @rdname rcppmetrics
+#' @references \url{https://dn.revuesonline.com/gratuit/DN17_1_06_Deveau.pdf}
 BigDeveaud2014 <- function(beta) {
     .Call(`_biglda_BigDeveaud2014`, beta)
 }

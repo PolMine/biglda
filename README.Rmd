@@ -274,7 +274,6 @@ lda <- as_LDA(gensim_model, dtm = AssociatedPress, verbose = FALSE)
 ```
 
 
-
 ## Performance
 
 To convey that biglda is fast, we fit topic models with Mallet with different
@@ -322,34 +321,6 @@ for (cores in 1L:n_cores_max){
 }
 ```
 
-
-```{r gensim_benchmark, eval = FALSE, echo = FALSE}
-library(reticulate)
-gensim <- reticulate::import("gensim")
-
-cores_to_use <- as.integer(parallel::detectCores() - 2L)
-
-bow <- dtm_as_bow(AssociatedPress)
-dict <- dtm_as_dictionary(AssociatedPress)
-
-gensim_started <- Sys.time()
-
-gensim_model <- gensim$models$ldamulticore$LdaMulticore(
-  corpus = py$corpus,
-  id2word = py$dictionary,
-  num_topics = k,
-  iterations = iterations,
-  per_word_topics = FALSE,
-  workers =  cores_to_use # required to be integer
-)
-
-run <- sprintf("gensim_%d", cores_to_use)
-report[[run]] <- data.frame(
-  tool = run,
-  time = as.numeric(difftime(Sys.time(), gensim_started, units = "mins"))
-)
-```
-
 And we run the classic implementation of LDA topic topic modelling in the 
 topicmodels package.
 
@@ -368,31 +339,6 @@ lda_model <- LDA(
 report[["topicmodels"]] <- data.frame(
   tool = "topicmodels",
   time = difftime(Sys.time(), topicmodels_started, units = "mins")
-)
-```
-
-```{r benchmark_stm, eval = FALSE, echo = FALSE}
-# Omitted, because it is much, much slower than topicmodels::LDA()
-
-library(stm)
-
-AP <- readCorpus(AssociatedPress, type = "slam")
-
-stm_started <- Sys.time()
-
-stm_model <- stm(
-  documents = AP$documents,
-  vocab = AP$vocab,
-  K = k,
-  reportevery = 0L,
-  verbose = FALSE,
-  max.em.its = iterations,
-  init.type = "LDA"
-)
-
-report[["stm"]] <- data.frame(
-  tool = "stm",
-  time = difftime(Sys.time(), stm_started, units = "mins")
 )
 ```
 

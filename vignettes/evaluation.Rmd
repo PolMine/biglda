@@ -76,13 +76,15 @@ metrics <- lapply(
     BTM$setNumIterations(1000L)
     BTM$estimate()
     lda <- as_LDA(BTM, verbose = FALSE)
-    N <- BTM$getDocLengthCounts()
-    data.frame(
-      k = k,
-      cao2009 = BigCao2009(X = B(lda)),
-      arun2010 = BigArun2010(beta = B(lda), gamma = G(lda), doclengths = N),
-      deveaud2014 = BigDeveaud2014(beta = B(lda))
-    )
+    
+    metrics(lda, verbose = FALSE)
+    # N <- BTM$getDocLengthCounts()
+    # data.frame(
+    #   k = k,
+    #   cao2009 = BigCao2009(X = B(lda)),
+    #   arun2010 = BigArun2010(beta = B(lda), gamma = G(lda), doclengths = N),
+    #   deveaud2014 = BigDeveaud2014(beta = B(lda))
+    # )
   }
 )
 df <- do.call(rbind, metrics)

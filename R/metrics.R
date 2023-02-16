@@ -12,7 +12,6 @@ setGeneric("metrics", function(x, ...) standardGeneric("metrics") )
 #'   mallet_load_topicmodel() |>
 #'   as_LDA()
 #' metrics(lda)
-#' 
 #' @rdname metrics
 setMethod("metrics", signature = "TopicModel", function(x, verbose = TRUE){
   
@@ -23,8 +22,13 @@ setMethod("metrics", signature = "TopicModel", function(x, verbose = TRUE){
   if (verbose) cli_progress_step("calculating cao2009")
   cao <- BigCao2009(X = B(x))
   
-  if (verbose) cli_progress_step("calculating arun2010")
-  arun <- BigArun2010(beta = B(x), gamma = G(x), doclengths = x@doclengths)
+  if (sum(dim(G(x))) > 0L && length(x@doclengths) > 0L){
+    if (verbose) cli_progress_step("calculating arun2010")
+    arun <- BigArun2010(beta = B(x), gamma = G(x), doclengths = x@doclengths)
+  } else {
+    if (verbose) cli_alert_info("gamma matrix and/or doclengths not present - skipping Arun2010")
+    arun <- NA
+  }
   
   if (verbose) cli_progress_step("calculating deveaud2014")
   deveaud <- BigDeveaud2014(beta = B(x))
@@ -39,6 +43,41 @@ setMethod("metrics", signature = "TopicModel", function(x, verbose = TRUE){
   class(retval) <- c("metrics", class(retval))
   retval
 })
+
+
+#' @importFrom graphics legend lines par points
+#' @rdname metrics
+#' @exportS3Method 
+plot.metrics <- function(x, ...){
+  par(mfrow = c(1,2))
+  plot(
+    x = x$k, y = x$cao2009,
+    ylab = "normalized metric", xlab = "k (number of topics)",
+    main = "Metrics to minimize",
+    type = "n"
+  )
+  lines(x = x$k, y = x$arun2010, col = "steelblue", lwd = 1)
+  points(x = x$k, y = x$arun2010, col = "steelblue", pch = 18)
+  lines(x = x$k, y = x$cao2009, col = "chartreuse3", lwd = 1)
+  points(x = x$k, y = x$cao2009, col = "chartreuse3", pch = 17)
+  legend(
+    x = "topleft",
+    legend = c("arun2010", "cao2009"),
+    fill = c("steelblue", "chartreuse3"),
+    cex = 0.5
+  )
+  
+  plot(
+    x = x$k, y = x$cao2009,
+    ylab = "normalized metric", xlab = "k (number of topics)", 
+    main = "Metrics to maximize",
+    type = "n"
+  )
+  lines(x = x$k, y = x$deveaud2014, col = "coral2", lwd = 1)
+  points(x = x$k, y = x$deveaud2014, col = "coral2", pch = 19)
+  legend(x = "topright", legend = "deveaud2014", fill = "coral2", cex = 0.5)
+  
+}
 
 #' Fast Implementation of Cao et al. 2009
 #' 

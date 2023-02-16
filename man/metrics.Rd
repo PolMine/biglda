@@ -4,11 +4,14 @@
 \name{metrics}
 \alias{metrics}
 \alias{metrics,TopicModel-method}
+\alias{plot.metrics}
 \title{Evaluate topic model.}
 \usage{
 metrics(x, ...)
 
 \S4method{metrics}{TopicModel}(x, verbose = TRUE)
+
+\method{plot}{metrics}(x, ...)
 }
 \arguments{
 \item{x}{Input object of class inheriting from `TopicModel`.}
@@ -25,5 +28,4 @@ lda <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
   mallet_load_topicmodel() |>
   as_LDA()
 metrics(lda)
-
 }

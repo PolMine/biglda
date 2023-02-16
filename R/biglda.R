@@ -58,14 +58,46 @@ NULL
 #' fname <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin")
 #' bigmodel <- mallet_load_topicmodel(fname)
 #' bigmodel$getDocLengthCounts()
-BigTopicModel <- function(n_topics = 25L, alpha_sum = 5.1, beta = 0.1){
-  rJava::.jnew("BigTopicModel", as.numeric(n_topics), alpha_sum, beta)
+BigTopicModel <- function(instances = NULL, n_topics = 25L, alpha_sum = 5.1, beta = 0.1, threads = 1L, iterations = 1000L, verbose = TRUE, silent = FALSE){
+
+  stopifnot(
+    is.numeric(n_topics), length(n_topics) == 1L,
+    is.numeric(alpha_sum), length(alpha_sum) == 1L,
+    is.numeric(beta), length(beta) == 1L,
+    is.numeric(threads), length(threads) == 1L,
+    is.numeric(iterations), length(iterations) == 1L,
+    is.logical(silent), length(silent) == 1L
+  )
+
+  y <- rJava::.jnew("BigTopicModel", as.numeric(n_topics), alpha_sum, beta)
+  
+  if (!is.null(instances)){
+    if (verbose) cli_progress_step("add instances to `BigTopicModel` object")
+    y$addInstances(instances)
+    if (verbose) cli_progress_done()
+  }
+  
+  y$setNumThreads(as.integer(threads))
+  y$setNumIterations(as.integer(iterations))
+
+  if (silent){
+    y$setTopicDisplay(0L, 0L) # no intermediate report on topics
+    y$logger$setLevel(rJava::J("java.util.logging.Level")$OFF) # remain silent
+  }
+
+  y
 }
 
 
+#' @param instances A Mallet `InstanceList` object.
 #' @param n_topics Number of topics (single `integer` value).
 #' @param alpha_sum Passed into constructor.
 #' @param beta Passet into constructor.
+#' @param iterations Number of interations to run.
+#' @param threads Number of threads/cores to use.
+#' @param verbose A `logical` value, whether to show progress messages.
+#' @param silent Defaults to `FALSE`, if `TRUE`, all Mallet progress messages
+#'   are muted.
 #' @details The `ParallelTopicModel()` function will instantial a Java class
 #'   object with the same name from the mallet package, see the
 #'   \href{http://mallet.cs.umass.edu/api/cc/mallet/topics/ParallelTopicModel.html}{mallet

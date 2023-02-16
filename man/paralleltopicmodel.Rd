@@ -6,18 +6,38 @@
 \alias{mallet_load_topicmodel}
 \title{Instantiate and load mallet topicmodel}
 \usage{
-BigTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
+BigTopicModel(
+  instances = NULL,
+  n_topics = 25L,
+  alpha_sum = 5.1,
+  beta = 0.1,
+  threads = 1L,
+  iterations = 1000L,
+  verbose = TRUE,
+  silent = FALSE
+)
 
 ParallelTopicModel(n_topics = 25L, alpha_sum = 5.1, beta = 0.1)
 
 mallet_load_topicmodel(binfile, instancefile, statefile, verbose = TRUE)
 }
 \arguments{
+\item{instances}{A Mallet `InstanceList` object.}
+
 \item{n_topics}{Number of topics (single `integer` value).}
 
 \item{alpha_sum}{Passed into constructor.}
 
 \item{beta}{Passet into constructor.}
+
+\item{threads}{Number of threads/cores to use.}
+
+\item{iterations}{Number of interations to run.}
+
+\item{verbose}{A `logical` value, whether to output progress messages.}
+
+\item{silent}{Defaults to `FALSE`, if `TRUE`, all Mallet progress messages
+are muted.}
 
 \item{binfile}{Either a `character` vector containing the path of a mallet 
 topic model (ParallelTopicModel), tilde expansion will be appied. Or a 
@@ -27,8 +47,6 @@ Java file object.}
 
 \item{statefile}{Path to a statefile (gzipped text file usually ending with
 .gz).}
-
-\item{verbose}{A `logical` value, whether to output progress messages.}
 }
 \description{
 Instantiate and load mallet topicmodel

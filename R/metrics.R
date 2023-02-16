@@ -11,7 +11,8 @@ setGeneric("metrics", function(x, ...) standardGeneric("metrics") )
 #' lda <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
 #'   mallet_load_topicmodel() |>
 #'   as_LDA()
-#' metrics(lda)
+#' m <- metrics(lda)
+#' if (interactive()) plot(m)
 #' @rdname metrics
 setMethod("metrics", signature = "TopicModel", function(x, verbose = TRUE){
   
@@ -45,10 +46,24 @@ setMethod("metrics", signature = "TopicModel", function(x, verbose = TRUE){
 })
 
 
+
+#' Plot metrics.
+#' 
+#' Basic plot to visualize metrics. For a nicer, more elaborate plot, see
+#' `ldatuning::FindTopicsNumber_plot()`
 #' @importFrom graphics legend lines par points
 #' @rdname metrics
 #' @exportS3Method 
 plot.metrics <- function(x, ...){
+  
+  metrics <- c("cao2009", "arun2010", "deveaud2014")
+  if (!all(metrics %in% colnames(x))) stop("all metrics need to be present")
+  
+  for (m in metrics){
+    x[[m]] <- (x[[m]] - min(x[[m]])) / max(x[[m]] - min(x[[m]]))
+  }
+  
+  mfrow_old <- par("mfrow")
   par(mfrow = c(1,2))
   plot(
     x = x$k, y = x$cao2009,
@@ -77,6 +92,7 @@ plot.metrics <- function(x, ...){
   points(x = x$k, y = x$deveaud2014, col = "coral2", pch = 19)
   legend(x = "topright", legend = "deveaud2014", fill = "coral2", cex = 0.5)
   
+  par(mfrow = mfrow_old)
 }
 
 #' Fast Implementation of Cao et al. 2009

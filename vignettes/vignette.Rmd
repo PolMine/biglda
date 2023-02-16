@@ -100,6 +100,72 @@ topicmodels_lda <- as_LDA(lda)
 ```
 
 
+### Evaluating topic models
+
+This is a minimal example to demonstrate a workflow for fitting a set of LDA topic
+models, and evaluating the models. Note that given the stochastic nature of 
+LDA topic models, results are different each time this vignette is built.
+
+```{r, eval = TRUE}
+library(parallel)
+library(stringi)
+```
+
+We use the REUTERS corpus included in the RcppCWB package here to provide a 
+minimal working example.
+
+```{r use_reuters}
+use("RcppCWB", corpus = "REUTERS")
+```
+
+Given the very limited size of the corpus (`r size(corpus("REUTERS"))` tokens /
+`r length(s_attributes("REUTERS", "id"))` documents) , results obtained here are
+not robust. 
+
+
+```{r, eval = TRUE}
+cores_to_use <- detectCores() - 1L # use all available cores but one
+```
+
+
+```{r make_instance_list, message = FALSE, eval = TRUE}
+discard <- c(tm::stopwords("en"), capitalize(tm::stopwords("en")))
+
+instance_list <- corpus("REUTERS") %>%
+  split(s_attribute = "id") %>%
+  get_token_stream(p_attribute = "word", subset = {!word %in% discard}) %>%
+  lapply(tolower) %>%
+  sapply(stri_c, collapse = "\n") %>% # stri_c() is faster than paste0()
+  as.instance_list()
+```
+
+
+```{r fit_models, eval = TRUE, message = FALSE, fig.width = 10}
+reuters_metrics_list <- lapply(
+  seq(from = 6, to = 30, by = 2),
+  function(k){
+    message("... fitting model for k: ", k)
+    BTM <- BigTopicModel(
+      instances = instance_list,
+      n_topics = k,
+      alpha_sum = 5.1,
+      beta = 0.1,
+      iterations = 1000L,
+      threads = cores_to_use,
+      silent = TRUE
+    )
+    BTM$estimate()
+    lda <- as_LDA(BTM, verbose = FALSE)
+    metrics(lda, verbose = FALSE)
+  }
+)
+reuters_metrics <- do.call(rbind, reuters_metrics_list)
+
+plot(reuters_metrics)
+```
+
+
+
 ## Perspectives
 
 

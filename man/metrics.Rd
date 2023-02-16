@@ -21,11 +21,13 @@ metrics(x, ...)
 \item{verbose}{A `logical` value, whether to output progress messages.}
 }
 \description{
-Evaluate topic model.
+Basic plot to visualize metrics. For a nicer, more elaborate plot, see
+`ldatuning::FindTopicsNumber_plot()`
 }
 \examples{
 lda <- system.file(package = "biglda", "extdata", "mallet", "lda_mallet.bin") |>
   mallet_load_topicmodel() |>
   as_LDA()
-metrics(lda)
+m <- metrics(lda)
+if (interactive()) plot(m)
 }

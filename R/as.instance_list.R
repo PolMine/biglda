@@ -30,14 +30,18 @@
 #' )
 #' 
 #' instance_list <- as.instance_list(speeches)
-#' lda <- BigTopicModel(25, 5.1, 0.1)
-#' lda$addInstances(instance_list)
-#' lda$getDocLengthCounts()
-#' lda$setNumThreads(1L)
-#' lda$setTopicDisplay(50L, 10L)
+#' lda <- BigTopicModel(
+#'   instances = instance_list,
+#'   n_topics = 25,
+#'   alpha_sum = 5.1,
+#'   beta = 0.1,
+#'   threads = 1L,
+#'   iterations = 150L
+#' )
+#' 
 #' destfile <- tempfile()
 #' lda$setSaveSerializedModel(50L, rJava::.jnew("java/lang/String", destfile))
-#' lda$setNumIterations(150L)
+#' 
 #' lda$estimate()
 #' lda$write(rJava::.jnew("java/io/File", destfile))
 #' 

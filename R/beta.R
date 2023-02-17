@@ -114,14 +114,14 @@ load_word_weights <- function(filename, minimized = TRUE, beta_coeff, normalized
   }
   
   if (normalized){
-    if (verbose) cli_alert_info("normalize beta matrix")
+    beta_coeff <- min(beta)
+    if (verbose) cli_progress_step("normalize beta matrix (beta coefficient: {.val {beta_coeff}})")
     # inspired by Mallet code:
     # topicNormalizers[topic] = 1.0 / (tokensPerTopic[topic] + numTypes * beta);
-    beta_coeff <- min(beta)
-    if (verbose) cli_alert_info("beta coefficient: {.val {beta_coeff}}")
     tokens_per_topic <- apply(beta - beta_coeff, 1L, sum) # undo smoothing
     topic_normalizers <- tokens_per_topic + (ncol(beta) * beta_coeff)
     beta <- beta / topic_normalizers
+    if (verbose) cli_progress_done()
   }
 
   beta

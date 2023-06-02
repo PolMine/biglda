@@ -63,8 +63,18 @@ widely used `topicanalysis` package.
 
 ### ‘biglda’ package
 
-The biglda package is a GitHub-only package at this time. Install the
-stable version as follows.
+The biglda package is a GitHub-only package at this time. It includes
+code that needs to be compiled. Please note:
+
+- **Windows** users will need a working installation of
+  [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html).
+
+- Starting from R 4.3, compiling an R package on **macOS** requires a
+  FORTRAN compiler. See <https://mac.R-project.org/tools> on
+  instructions and a link where you can download a universal GNU Fortran
+  12.2 compiler prepared by CRAN.
+
+Install the stable release of biglda as follows.
 
 ``` r
 remotes::install_github("PolMine/biglda")
@@ -141,6 +151,30 @@ follows.
 reticulate::install_miniconda()
 reticulate::conda_install(packages = "gensim")
 ```
+
+An alternative is to use virtualenv.
+
+``` r
+reticulate::use_virtualenv("r-reticulate")
+virtualenv_install(envname = "r-reticulate", packages = "gensim")
+```
+
+It may be necessary to set the environment variable RETICULATE_PYTHON in
+the \~/.Renviron file to point to the Python installation you want to
+use. Check the installation as follows:
+
+``` r
+reticulate::py_config()
+```
+
+    ## python:         /Users/andreasblatte/.virtualenvs/r-reticulate/bin/python
+    ## libpython:      /opt/homebrew/opt/python@3.11/Frameworks/Python.framework/Versions/3.11/lib/python3.11/config-3.11-darwin/libpython3.11.dylib
+    ## pythonhome:     /Users/andreasblatte/.virtualenvs/r-reticulate:/Users/andreasblatte/.virtualenvs/r-reticulate
+    ## version:        3.11.3 (main, Apr  7 2023, 20:13:31) [Clang 14.0.0 (clang-1400.0.29.202)]
+    ## numpy:          /Users/andreasblatte/.virtualenvs/r-reticulate/lib/python3.11/site-packages/numpy
+    ## numpy_version:  1.24.2
+    ## 
+    ## NOTE: Python version was forced by RETICULATE_PYTHON
 
 ## Using biglda
 
@@ -222,7 +256,7 @@ BTM$estimate()
 Sys.time() - started
 ```
 
-    ## Time difference of 4.485914 secs
+    ## Time difference of 4.853387 secs
 
 The package includes optimized functionality for evaluating the topic
 model. Metrics are computed as follows.
@@ -238,9 +272,9 @@ data.frame(
 ```
 
     ##   arun2010    cao2009 deveaud2014
-    ## 1 3630.858 0.06176298    1.480718
+    ## 1  3567.07 0.06485187    1.474046
 
-#### Gensim
+#### Topic modelling with Gensim
 
 To use Gensim for topic modelling, first load the reticulate package and
 import gensim into the Python session.
@@ -271,27 +305,21 @@ threads <- parallel::detectCores() - 2L
 This is the genuine Python part - running Gensim.
 
 ``` r
-gensim_model <- gensim$models$ldamulticore$LdaModel(
-# gensim_model <- gensim$models$ldamulticore$LdaMulticore(
+gensim_model <- gensim$models$ldamulticore$LdaMulticore(
   corpus = py$corpus,
   id2word = py$dictionary,
   num_topics = 100L,
-  iterations = 100L,
-  per_word_topics = FALSE
-#  workers = as.integer(threads) # required to be integer
+  iterations = 5L, # Proof of concept, much less than in real life
+  per_word_topics = FALSE,
+  workers = as.integer(threads) # required to be integer
 )
 ```
 
 Use the `as_LDA()` method to get back data from Pyhton/Gensim to R.
 
 ``` r
-lda <- as_LDA(gensim_model, dtm = AssociatedPress)
+lda <- as_LDA(gensim_model, dtm = AssociatedPress, verbose = FALSE)
 ```
-
-    ## ℹ Insantiate basic LDA_Gensim S4 class✔ Insantiate basic LDA_Gensim S4 class [125ms]
-    ## ℹ assign dictionary (slot 'terms')✔ assign dictionary (slot 'terms') [17ms]
-    ## ℹ assign word-topic distribution matrix (slot 'beta')✔ assign word-topic distribution matrix (slot 'beta') [16ms]
-    ## ℹ assign topic distribution for each document (slot 'gamma')✔ assign topic distribution for each document (slot 'gamma') [12s]
 
 ## Performance
 

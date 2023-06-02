@@ -1,6 +1,8 @@
 ---
 title: Introducing the biglda package
 output: github_document
+editor_options: 
+  chunk_output_type: console
 ---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
@@ -61,8 +63,17 @@ package.
 
 ### 'biglda' package
 
-The biglda package is a GitHub-only package at this time. Install the stable 
-version as follows.
+The biglda package is a GitHub-only package at this time. It includes code that
+needs to be compiled. Please note:
+
+- **Windows** users will need a working installation of [Rtools](https://cran.r-project.org/bin/windows/Rtools/rtools43/rtools.html).
+
+- Starting from R 4.3, compiling an R package on **macOS** requires a FORTRAN
+compiler. See [https://mac.R-project.org/tools](https://mac.R-project.org/tools)
+on instructions and a link where you can download a universal GNU Fortran 12.2
+compiler prepared by CRAN.
+
+Install the stable release of biglda as follows.
 
 ```{r install_release, eval = FALSE}
 remotes::install_github("PolMine/biglda")
@@ -137,6 +148,22 @@ easiest way is to use `install_miniconda()` and to install Gensim as follows.
 reticulate::install_miniconda()
 reticulate::conda_install(packages = "gensim")
 ```
+
+An alternative is to use virtualenv.
+
+```{r install_virtualenv, eval = FALSE}
+reticulate::use_virtualenv("r-reticulate")
+virtualenv_install(envname = "r-reticulate", packages = "gensim")
+```
+
+It may be necessary to set the environment variable RETICULATE_PYTHON in the 
+~/.Renviron file to point to the Python installation you want to use. Check 
+the installation as follows:
+
+```{r}
+reticulate::py_config()
+```
+
 
 
 ## Using biglda
@@ -261,7 +288,7 @@ gensim_model <- gensim$models$ldamulticore$LdaMulticore(
   corpus = py$corpus,
   id2word = py$dictionary,
   num_topics = 100L,
-  iterations = 100L,
+  iterations = 5L, # Proof of concept, much less than in real life
   per_word_topics = FALSE,
   workers = as.integer(threads) # required to be integer
 )

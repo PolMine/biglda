@@ -11,6 +11,39 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// write_token_stream
+int write_token_stream(SEXP corpus, SEXP p_attribute, SEXP s_attribute, SEXP registry, SEXP attribute_type, Rcpp::StringVector filename);
+RcppExport SEXP _biglda_write_token_stream(SEXP corpusSEXP, SEXP p_attributeSEXP, SEXP s_attributeSEXP, SEXP registrySEXP, SEXP attribute_typeSEXP, SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type corpus(corpusSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type p_attribute(p_attributeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type s_attribute(s_attributeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type registry(registrySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type attribute_type(attribute_typeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(write_token_stream(corpus, p_attribute, s_attribute, registry, attribute_type, filename));
+    return rcpp_result_gen;
+END_RCPP
+}
+// write_token_stream2
+int write_token_stream2(SEXP corpus, SEXP p_attribute, SEXP s_attribute, Rcpp::IntegerVector strucs, SEXP registry, SEXP attribute_type, Rcpp::StringVector filename);
+RcppExport SEXP _biglda_write_token_stream2(SEXP corpusSEXP, SEXP p_attributeSEXP, SEXP s_attributeSEXP, SEXP strucsSEXP, SEXP registrySEXP, SEXP attribute_typeSEXP, SEXP filenameSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< SEXP >::type corpus(corpusSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type p_attribute(p_attributeSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type s_attribute(s_attributeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type strucs(strucsSEXP);
+    Rcpp::traits::input_parameter< SEXP >::type registry(registrySEXP);
+    Rcpp::traits::input_parameter< SEXP >::type attribute_type(attribute_typeSEXP);
+    Rcpp::traits::input_parameter< Rcpp::StringVector >::type filename(filenameSEXP);
+    rcpp_result_gen = Rcpp::wrap(write_token_stream2(corpus, p_attribute, s_attribute, strucs, registry, attribute_type, filename));
+    return rcpp_result_gen;
+END_RCPP
+}
 // BigCao2009
 double BigCao2009(const arma::mat& X);
 RcppExport SEXP _biglda_BigCao2009(SEXP XSEXP) {
@@ -48,6 +81,8 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_biglda_write_token_stream", (DL_FUNC) &_biglda_write_token_stream, 6},
+    {"_biglda_write_token_stream2", (DL_FUNC) &_biglda_write_token_stream2, 7},
     {"_biglda_BigCao2009", (DL_FUNC) &_biglda_BigCao2009, 1},
     {"_biglda_BigArun2010", (DL_FUNC) &_biglda_BigArun2010, 3},
     {"_biglda_BigDeveaud2014", (DL_FUNC) &_biglda_BigDeveaud2014, 1},

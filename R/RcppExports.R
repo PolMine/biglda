@@ -7,24 +7,22 @@
 #' @param p_attribute X
 #' @param s_attribute X
 #' @param registry X
-#' @param attribute_type X
 #' @param filename X
 #' @rdname rcppmetrics
-write_token_stream <- function(corpus, p_attribute, s_attribute, registry, attribute_type, filename) {
-    .Call(`_biglda_write_token_stream`, corpus, p_attribute, s_attribute, registry, attribute_type, filename)
-}
-
-#' Rcpp/RcppCWB implementation for writing token stream
-#' 
-#' @param corpus corpus.
-#' @param p_attribute X
-#' @param s_attribute X
-#' @param registry X
-#' @param attribute_type X
-#' @param filename X
-#' @rdname rcppmetrics
-write_token_stream2 <- function(corpus, p_attribute, s_attribute, strucs, registry, attribute_type, filename) {
-    .Call(`_biglda_write_token_stream2`, corpus, p_attribute, s_attribute, strucs, registry, attribute_type, filename)
+#' @example
+#' use("RcppCWB")
+#' library(polmineR)
+#' corpus("REUTERS")
+#' fname <- tempfile(fileext = ".txt")
+#' write_token_stream(
+#'   corpus = "REUTERS",
+#'   p_attribute = "word",
+#'   strucs = 0:10,
+#'   registry = ,
+#'   filename = fname
+#' )
+write_token_stream <- function(corpus, p_attribute, s_attribute, strucs, registry, filename) {
+    .Call(`_biglda_write_token_stream`, corpus, p_attribute, s_attribute, strucs, registry, filename)
 }
 
 #' RcppArmadillo implementation of topic model metrics

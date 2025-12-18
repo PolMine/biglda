@@ -38,14 +38,13 @@
 #' if (!mallet_is_installed()) mallet_install()
 #' @author Andreas Blaette (andreas.blaette@@uni-due.de)
 #' @keywords package
-#' @docType package
 #' @aliases biglda biglda-package
 #' @name biglda-package
 #' @rdname biglda-package
 #' @useDynLib biglda, .registration = TRUE
 #' @importFrom Rcpp evalCpp
 #' @exportPattern "^[[:alpha:]]+"
-NULL
+"_PACKAGE"
 
 
 #' @details The `BigTopicModel` function will instantiate a Java class object

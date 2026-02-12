@@ -1,0 +1,74 @@
+---
+title: "A Workflow for Seeded LDA Topic Modelling"
+format: html
+editor: source
+jupyter: python3
+---
+
+## Generate Mallet input with R/polmineR
+
+### Getting started
+
+```{r load_r_libs}
+library(biglda)
+library(RcppCWB)
+```
+
+```{r general}
+fname <- "~/Lab/tmp/seededlda/albb.txt"
+```
+
+### Write corpus
+
+```{r}
+size <- RcppCWB::attribute_size(
+  corpus = "ALBB",
+  attribute = "article_id",
+  attribute_type = "s",
+  registry = corpus_registry_dir("ALBB")
+)
+```
+
+```{r}
+biglda::write_mallet_input(
+  corpus = "ALBB",
+  s_attribute = "article_id",
+  p_attribute = "word",
+  strucs = 0L:(size - 1L),
+  registry = corpus_registry_dir("ALBB"),
+  filename = path.expand(fname)
+)
+```
+
+### Write topic priors
+
+```{r write_topic_priors_file}
+topic_priors <- list(
+  "1" = c("Flüchtlinge", "Asylsuchende"),
+  "2" = c("Fachkräftemangel", "Arbeitskräftemangel"),
+  "3" = c("Sprachkurs", "Spracherwerb")
+)
+write_topic_priors(
+  x = topic_priors,
+  file = "~/Lab/tmp/seededlda/topic_priors.txt"
+)
+```
+
+
+## Run PCPLDA (from the command line)
+
+For some reason, there are newline signs in the ALBB corps that need to be removed
+
+```{sh rm_newline_signs}
+sed -i '' 's/\xC2\x85/ /g' albb.txt
+```
+
+
+```{sh run_pcplda}
+java                                                                      \
+  -Xmx24g -Xms24g                                                         \
+  -Djava.util.logging.config.file=/dev/null                               \
+  -cp ~/Lab/github_foreign/PartiallyCollapsedLDA/target/PCPLDA-9.2.2.jar  \
+  cc.mallet.topics.tui.ParallelLDA                                        \
+  --run_cfg=model.cfg
+```

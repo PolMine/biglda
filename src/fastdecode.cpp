@@ -8,29 +8,43 @@
 #include <cstdlib>
 
 
-
-//' Rcpp/RcppCWB implementation for writing token stream
+//' Write input format for MALLET using RcppCWB 
 //' 
-//' @param corpus corpus.
-//' @param p_attribute X
-//' @param s_attribute X
-//' @param registry X
-//' @param filename X
-//' @rdname rcppmetrics
-//' @example
-//' use("RcppCWB")
+//' MALLET and PartiallyCollapsedLDA use an input format with a line-wise corpus
+//' format with one document per line, where each line contains a document ID,
+//' a placeholder label, and the raw document text separated by tabs. This
+//' function uses a fast Rcpp/RcppCWB implementation for decoding a CWB corpus
+//' and writing it to the specified file.
+//' 
+//' @param corpus Length-one character vector with the ID of a CWB corpus.
+//' @param p_attribute A p-attribute (positional attribute).
+//' @param s_attribute The s-attribute delimiting documents.
+//' @param registry Length-one character vector with the registry directory.
+//' @param filename Name of output file (tilde expansion causes crash!).
+//' @examples
+//' library(biglda)
 //' library(polmineR)
-//' corpus("REUTERS")
-//' fname <- tempfile(fileext = ".txt")
-//' write_token_stream(
-//'   corpus = "REUTERS",
+//' library(RcppCWB)
+//' use("RcppCWB")
+//' 
+//'  fname <- tempfile(fileext = ".txt")
+//'  size <- RcppCWB::attribute_size(
+//'    corpus = "ALBB",
+//'    attribute = "article_id",
+//'    attribute_type = "s",
+//'    registry = corpus_registry_dir("ALBB")
+//' )
+  
+//' biglda::write_mallet_input(
+//'   corpus = "ALBB",
+//'   s_attribute = "article_id",
 //'   p_attribute = "word",
-//'   strucs = 0:10,
-//'   registry = ,
+//'   strucs = 0L:(size - 1L),
+//'   registry = corpus_registry_dir("ALBB"),
 //'   filename = fname
 //' )
 // [[Rcpp::export]]
-int write_token_stream(SEXP corpus, SEXP p_attribute, SEXP s_attribute, Rcpp::IntegerVector strucs, SEXP registry, Rcpp::StringVector filename) {
+int write_mallet_input(SEXP corpus, SEXP p_attribute, SEXP s_attribute, Rcpp::IntegerVector strucs, SEXP registry, Rcpp::StringVector filename) {
   
   int i, j, region_size;
   Rcpp::IntegerVector region(2);
@@ -39,13 +53,10 @@ int write_token_stream(SEXP corpus, SEXP p_attribute, SEXP s_attribute, Rcpp::In
   
   std::vector<int> strucs_int = Rcpp::as<std::vector<int> >(strucs);
   int strucs_length = strucs_int.size();
-  Rcpp::StringVector s_attrs = RcppCWB::_cl_struc2str(
-    corpus,
-    s_attribute,
-    strucs,
-    registry)
-  ;
   
+  SEXP att = RcppCWB::s_attr(corpus, s_attribute, registry);
+  Rcpp::StringVector s_attrs = RcppCWB::struc_to_str(att, strucs);
+
   outdata.open(filename[0]);
   if( !outdata ) {
     std::cerr << "Error: file could not be opened" << std::endl;

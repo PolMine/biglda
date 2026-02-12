@@ -2,7 +2,7 @@ Package: biglda
 Type: Package
 Title: Fast LDA Topic Modelling for Big Corpora
 Version: 0.0.2
-Date: 2023-02-17
+Date: 2025-12-18
 Authors@R: c(
   person("Andreas", "Blaette", role = c("aut", "cre"), email = "andreas.blaette@uni-due.de", comment = c(ORCID = "0000-0001-8970-8010")),
   person("Christoph", "Leonhardt", role = "ctb")
@@ -49,6 +49,7 @@ Collate:
   'svmlight.R'
   'beta.R'
   'gamma.R'
+  'seededlda.R'
   'zzz.R'
   'RcppExports.R'
 RoxygenNote: 7.3.3

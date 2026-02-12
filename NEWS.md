@@ -1,3 +1,8 @@
+# biglda v0.0.3
+
+* New function `write_topic_priors()`.
+* New function (Rcpp implementation) `write_mallet_input()`.
+
 # biglda v0.0.2
 
 * `mallet_instance_list_store()` renamed to `instance_list_save()` and

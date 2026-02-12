@@ -11,9 +11,9 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
-// write_token_stream
-int write_token_stream(SEXP corpus, SEXP p_attribute, SEXP s_attribute, Rcpp::IntegerVector strucs, SEXP registry, Rcpp::StringVector filename);
-RcppExport SEXP _biglda_write_token_stream(SEXP corpusSEXP, SEXP p_attributeSEXP, SEXP s_attributeSEXP, SEXP strucsSEXP, SEXP registrySEXP, SEXP filenameSEXP) {
+// write_mallet_input
+int write_mallet_input(SEXP corpus, SEXP p_attribute, SEXP s_attribute, Rcpp::IntegerVector strucs, SEXP registry, Rcpp::StringVector filename);
+RcppExport SEXP _biglda_write_mallet_input(SEXP corpusSEXP, SEXP p_attributeSEXP, SEXP s_attributeSEXP, SEXP strucsSEXP, SEXP registrySEXP, SEXP filenameSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -23,7 +23,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< Rcpp::IntegerVector >::type strucs(strucsSEXP);
     Rcpp::traits::input_parameter< SEXP >::type registry(registrySEXP);
     Rcpp::traits::input_parameter< Rcpp::StringVector >::type filename(filenameSEXP);
-    rcpp_result_gen = Rcpp::wrap(write_token_stream(corpus, p_attribute, s_attribute, strucs, registry, filename));
+    rcpp_result_gen = Rcpp::wrap(write_mallet_input(corpus, p_attribute, s_attribute, strucs, registry, filename));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -64,7 +64,7 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_biglda_write_token_stream", (DL_FUNC) &_biglda_write_token_stream, 6},
+    {"_biglda_write_mallet_input", (DL_FUNC) &_biglda_write_mallet_input, 6},
     {"_biglda_BigCao2009", (DL_FUNC) &_biglda_BigCao2009, 1},
     {"_biglda_BigArun2010", (DL_FUNC) &_biglda_BigArun2010, 3},
     {"_biglda_BigDeveaud2014", (DL_FUNC) &_biglda_BigDeveaud2014, 1},

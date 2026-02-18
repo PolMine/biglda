@@ -10,47 +10,48 @@ jupyter: python3
 ### Getting started
 
 ```{r load_r_libs}
-library(biglda)
 library(RcppCWB)
 ```
 
 ```{r general}
-fname <- "~/Lab/tmp/seededlda/albb.txt"
+fname <- "/srv/seededlda/dekr.txt"
 ```
 
 ### Write corpus
 
 ```{r}
 size <- RcppCWB::attribute_size(
-  corpus = "ALBB",
+  corpus = "DEKR",
   attribute = "article_id",
   attribute_type = "s",
-  registry = corpus_registry_dir("ALBB")
+  registry = corpus_registry_dir("DEKR")
 )
 ```
 
 ```{r}
 biglda::write_mallet_input(
-  corpus = "ALBB",
+  corpus = "DEKR",
   s_attribute = "article_id",
   p_attribute = "word",
   strucs = 0L:(size - 1L),
-  registry = corpus_registry_dir("ALBB"),
+  registry = corpus_registry_dir("DEKR"),
   filename = path.expand(fname)
 )
 ```
 
 ### Write topic priors
 
+Note: priors to be lowercased!
+
 ```{r write_topic_priors_file}
 topic_priors <- list(
-  "1" = c("Flüchtlinge", "Asylsuchende"),
-  "2" = c("Fachkräftemangel", "Arbeitskräftemangel"),
-  "3" = c("Sprachkurs", "Spracherwerb")
+  "1" = c("flüchtlinge", "asylsuchende"),
+  "2" = c("fachkräftemangel", "arbeitskräftemangel"),
+  "3" = c("sprachkurs", "spracherwerb")
 )
 write_topic_priors(
   x = topic_priors,
-  file = "~/Lab/tmp/seededlda/topic_priors.txt"
+  file = "/srv/seededlda/topic_priors.txt"
 )
 ```
 
@@ -68,7 +69,7 @@ sed -i '' 's/\xC2\x85/ /g' albb.txt
 java                                                                      \
   -Xmx24g -Xms24g                                                         \
   -Djava.util.logging.config.file=/dev/null                               \
-  -cp ~/Lab/github_foreign/PartiallyCollapsedLDA/target/PCPLDA-9.2.2.jar  \
+  -cp /opt/PartiallyCollapsedLDA/target/PCPLDA-9.2.2.jar  \
   cc.mallet.topics.tui.ParallelLDA                                        \
   --run_cfg=model.cfg
 ```

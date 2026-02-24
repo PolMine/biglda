@@ -67,9 +67,10 @@ sed -i '' 's/\xC2\x85/ /g' albb.txt
 
 ```{sh run_pcplda}
 java                                                                      \
-  -Xmx24g -Xms24g                                                         \
+  -Xmx24g                                                                 \
   -Djava.util.logging.config.file=/dev/null                               \
   -cp /opt/PartiallyCollapsedLDA/target/PCPLDA-9.2.2.jar  \
   cc.mallet.topics.tui.ParallelLDA                                        \
   --run_cfg=model.cfg
 ```
+
